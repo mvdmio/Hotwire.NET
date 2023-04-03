@@ -5,10 +5,10 @@
             <ShouldCopyStimulus>!Exists('$(HotwireCopyBaseDirectory)\stimulus.js')</ShouldCopyStimulus>
         </PropertyGroup>
 
-        <Message Text="Copying Hotwire files."                     Importance="high" Condition="$(ShouldCopyTurbo) || $(ShouldCopyStimulus)" />
+        <Message Text="Copying Hotwire files."                     Importance="high" Condition="$(ShouldCopyTurbo) Or $(ShouldCopyStimulus)" />
         <Message Text="  Turbo: $(HotwireTurboJsPath)"             Importance="high" Condition="$(ShouldCopyTurbo)" />
         <Message Text="  Stimulus: $(HotwireStimulusJsPath)"       Importance="high" Condition="$(ShouldCopyStimulus)" />
-        <Message Text="  Destination: $(HotwireCopyBaseDirectory)" Importance="high" Condition="$(ShouldCopyTurbo) || $(ShouldCopyStimulus)" />
+        <Message Text="  Destination: $(HotwireCopyBaseDirectory)" Importance="high" Condition="$(ShouldCopyTurbo) Or $(ShouldCopyStimulus)" />
 
         <Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="$(ShouldCopyTurbo)" />
         <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="$(ShouldCopyStimulus)" />
