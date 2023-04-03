@@ -6,4 +6,8 @@
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="mvdmio.Hotwire.NET" Version="0.1.0" />
+  </ItemGroup>
+
 </Project>

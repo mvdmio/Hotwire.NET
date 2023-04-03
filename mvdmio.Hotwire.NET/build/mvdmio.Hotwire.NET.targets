@@ -1,5 +1,10 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-	<Target Name="CopyTailwindContent" BeforeTargets="CoreCompile" Condition="$(TailwindCopyDefaultFiles) == 'true'">
+	<Target Name="CopyTailwindContent" BeforeTargets="CoreCompile" Condition="$(HotwireCopyDefaultFiles) == 'true'">
+		<Message Text="Copying Hotwire files." Importance="high" />
+		<Message Text="  Turbo: $(HotwireTurboJsPath)" Importance="high" />
+		<Message Text="  Stimulus: $(HotwireStimulusJsPath)" Importance="high" />
+		<Message Text="  Destination: $(HotwireCopyBaseDirectory)" Importance="high" />
+
 		<Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$($(HotwireCopyBaseDirectory)\turbo.js')" />
 		<Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$($(HotwireCopyBaseDirectory)\stimulus.js')" />
 	</Target>
