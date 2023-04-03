@@ -23,10 +23,10 @@ jobs:
         dotnet-version: 7.0.x
         
     - name: Restore dependencies
-      run: dotnet restore mvdmio.Tailwind.NET
+      run: dotnet restore mvdmio.Hotwire.NET
       
     - name: Build
-      run: dotnet build mvdmio.Tailwind.NET --no-restore
+      run: dotnet build mvdmio.Hotwire.NET --no-restore
           
     - name: Push package
       run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -NonInteractive -SkipDuplicate -Verbosity normal
