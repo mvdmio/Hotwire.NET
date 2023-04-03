@@ -1,0 +1,16 @@
+**/.git
+**/.vs
+**/.idea
+**/packages
+**/bin
+**/obj
+**/node_modules
+**/TestResults
+
+**/*.user
+
+**/*.pubxml
+**/profile.arm.json
+
+**/*.dbmdl
+**/*.jfm

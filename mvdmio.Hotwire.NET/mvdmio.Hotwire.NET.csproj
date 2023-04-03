@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
+		<LangVersion>latest</LangVersion>
+		<ImplicitUsings>disable</ImplicitUsings>
+		<Nullable>enable</Nullable>
+		<DebugType>embedded</DebugType>
+		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<Version>0.1.0</Version>
+		<Title>mvdmio.Hotwire.NET</Title>
+		<Description>Adds Hotwire Turbo and Stimulus to your .NET project.</Description>
+		<Company>mvdmio</Company>
+		<Authors>Michiel van der Meer</Authors>
+		<PackageReadmeFile>Readme.md</PackageReadmeFile>
+		<PackageLicenseFile>License.txt</PackageLicenseFile>
+	</PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="..\License.txt" Link="License.txt" />
+    <Content Include="..\Readme.md" Link="Readme.md" />
+  </ItemGroup>
+
+</Project>
