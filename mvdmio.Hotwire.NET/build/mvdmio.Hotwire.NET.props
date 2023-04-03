@@ -1,7 +1,9 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<PropertyGroup>
-		<HotwireTurboJsPath>lib\turbo.js</HotwireTurboJsPath>
-		<HotwireStimulusJsPath>lib\stimulus.js</HotwireStimulusJsPath>
+		<HotwireTurboJsPath>$(MSBuildThisFileDirectory)..\lib\turbo.js</HotwireTurboJsPath>
+		<HotwireStimulusJsPath>$(MSBuildThisFileDirectory)..\lib\stimulus.js</HotwireStimulusJsPath>
+
+		<!-- Variables -->
 		<HotwireCopyDefaultFiles>true</HotwireCopyDefaultFiles>
 		<HotwireCopyBaseDirectory>$(MSBuildProjectDirectory)\wwwroot\js\lib</HotwireCopyBaseDirectory>
 	</PropertyGroup>

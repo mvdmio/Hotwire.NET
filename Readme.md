@@ -13,16 +13,10 @@ dotnet add package mvdmio.Hotwire.NET
 You can override the following properties in your project file (.csproj):
 ```
 <PropertyGroup>
-	<!-- The path to the turbo.js file in the NuGet package -->
-	<HotwireTurboJsPath>lib\turbo.js</HotwireTurboJsPath>
-
-	<!-- The path to the stimulus.js file in the NuGet package -->
-	<HotwireStimulusJsPath>lib\stimulus.js</HotwireStimulusJsPath>
-
-	<!-- True if the turbo.js file and stimulus.js files should be copied to your project on build. False otherwise. -->
+	/* True if the turbo.js file and stimulus.js files should be copied to your project on build. False otherwise. */
 	<HotwireCopyDefaultFiles>true</HotwireCopyDefaultFiles>
 
-	<!-- The base path that the build will copy the turbo.js and stimulus.js files to. -->
+	/* The base path that the build will copy the turbo.js and stimulus.js files to. */
 	<HotwireCopyBaseDirectory>$(MSBuildProjectDirectory)\wwwroot\js\lib</HotwireCopyBaseDirectory>
 </PropertyGroup>
 ```
