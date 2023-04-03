@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFrameworks>netstandard2.0;netstandard2.1</TargetFrameworks>
@@ -20,9 +20,16 @@
 		<PackageLicenseFile>License.txt</PackageLicenseFile>
 	</PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="..\License.txt" Link="License.txt" />
-    <Content Include="..\Readme.md" Link="Readme.md" />
-  </ItemGroup>
+	<ItemGroup>
+		<None Include="..\License.txt" PackagePath="" Pack="true"></None>
+		<None Include="..\Readme.md" PackagePath="" Pack="true"></None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="lib\node_modules\@hotwired\stimulus\dist\stimulus.js" PackagePath="lib\stimulus.js" Pack="true" />
+		<None Include="lib\node_modules\@hotwired\turbo\dist\turbo.es2017-esm.js" PackagePath="lib\turbo.js" Pack="true" />
+
+		<None Include="build\*" PackagePath="build" Pack="true" />
+	</ItemGroup>
 
 </Project>

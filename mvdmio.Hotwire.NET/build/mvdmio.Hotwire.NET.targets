@@ -1,0 +1,6 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Target Name="CopyTailwindContent" BeforeTargets="CoreCompile" Condition="$(TailwindCopyDefaultFiles) == 'true'">
+		<Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$($(HotwireCopyBaseDirectory)\turbo.js')" />
+		<Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$($(HotwireCopyBaseDirectory)\stimulus.js')" />
+	</Target>
+</Project>

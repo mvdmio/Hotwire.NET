@@ -1,0 +1,8 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<PropertyGroup>
+		<HotwireTurboJsPath>lib\turbo.es2017-esm.js</HotwireTurboJsPath>
+		<HotwireStimulusJsPath>lib\stimulus.js</HotwireStimulusJsPath>
+		<HotwireCopyDefaultFiles>true</HotwireCopyDefaultFiles>
+		<HotwireCopyBaseDirectory>$(MSBuildProjectDirectory)\wwwroot\js\lib</HotwireCopyBaseDirectory>
+	</PropertyGroup>
+</Project>
