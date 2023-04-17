@@ -1,16 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Target Name="CopyTailwindContent" BeforeTargets="CoreCompile" Condition="'$(HotwireCopyDefaultFiles)' == 'true'">
-        <PropertyGroup>
-            <ShouldCopyTurbo>!Exists('$(HotwireCopyBaseDirectory)\turbo.js')</ShouldCopyTurbo>
-            <ShouldCopyStimulus>!Exists('$(HotwireCopyBaseDirectory)\stimulus.js')</ShouldCopyStimulus>
-        </PropertyGroup>
+    <Target Name="CopyHotwireContent" BeforeTargets="CoreCompile" Condition="'$(HotwireCopyDefaultFiles)' == 'true'">
+        <Message Text="Copying Hotwire files if they don't exist yet." Importance="high" />
+        <Message Text="  Turbo: $(HotwireTurboJsPath)"                 Importance="high" />
+        <Message Text="  Stimulus: $(HotwireStimulusJsPath)"           Importance="high" />
+        <Message Text="  Destination: $(HotwireCopyBaseDirectory)"     Importance="high" />
 
-        <Message Text="Copying Hotwire files."                     Importance="high" Condition="$(ShouldCopyTurbo) Or $(ShouldCopyStimulus)" />
-        <Message Text="  Turbo: $(HotwireTurboJsPath)"             Importance="high" Condition="$(ShouldCopyTurbo)" />
-        <Message Text="  Stimulus: $(HotwireStimulusJsPath)"       Importance="high" Condition="$(ShouldCopyStimulus)" />
-        <Message Text="  Destination: $(HotwireCopyBaseDirectory)" Importance="high" Condition="$(ShouldCopyTurbo) Or $(ShouldCopyStimulus)" />
-
-        <Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="$(ShouldCopyTurbo)" />
-        <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="$(ShouldCopyStimulus)" />
+        <Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$(HotwireCopyBaseDirectory)\turbo.js')" />
+        <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$(HotwireCopyBaseDirectory)\stimulus.js')" />
     </Target>
 </Project>
