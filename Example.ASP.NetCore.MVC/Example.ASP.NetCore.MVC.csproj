@@ -1,13 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net7.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="mvdmio.Hotwire.NET" Version="0.1.5" />
-  </ItemGroup>
+	<PropertyGroup>
+		<TailwindOutputFile>wwwroot/css/tailwind.output.css</TailwindOutputFile>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="mvdmio.Hotwire.NET" Version="0.1.8" />
+		<PackageReference Include="mvdmio.Tailwind.NET" Version="1.2.6" />
+	</ItemGroup>
 
 </Project>
