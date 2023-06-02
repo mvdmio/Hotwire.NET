@@ -4,6 +4,7 @@
    <meta charset="utf-8" />
    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
    <title>@ViewData["Title"] - mvdmio.Hotwire.NET</title>
+   <base href="/" />
 
    <link rel="stylesheet" href="~/css/tailwind.output.css" asp-append-version="true" />
 </head>
@@ -11,9 +12,8 @@
    <div class="h-screen w-screen overflow-hidden flex flex-col">
       <header class="shrink-0 h-12 w-full bg-blue-500 text-white">
          <nav class="w-full h-full px-4 flex flex-row items-center justify-start gap-4">
-            <a asp-area="" asp-page="/Index" class="font-bold">mvdmio.Hotwire.NET</a>
-            <a asp-area="" asp-page="/Index" class="">Home</a>
-            <a asp-area="" asp-page="/Privacy" class="">Privacy</a>
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="font-bold">mvdmio.Hotwire.NET</a>
+            <a asp-area="" asp-controller="Home" asp-action="Index">Home</a>
          </nav>
       </header>
 
@@ -23,9 +23,6 @@
 
       <footer class="shrink-0 w-full py-1 bg-blue-500 text-white flex flex-col items-center justify-center gap-1">
          <div>&copy; 2023 - Example.ASP.NetCore.MVC</div>
-         <div class="flex flex-row gap-4">
-            <a asp-area="" asp-page="/Privacy">Privacy</a>
-         </div>
       </footer>
    </div>
    <script type="module" src="~/js/lib/turbo.js" asp-append-version="true"></script>

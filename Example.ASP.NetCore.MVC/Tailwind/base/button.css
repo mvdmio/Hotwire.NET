@@ -1,0 +1,11 @@
+﻿.button {
+    @apply inline-block px-4 py-2;
+}
+
+.button.primary {
+    @apply bg-blue-500;
+}
+
+.button.primary:hover {
+    @apply bg-blue-600 shadow;
+}

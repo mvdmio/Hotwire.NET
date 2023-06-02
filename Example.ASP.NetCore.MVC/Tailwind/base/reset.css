@@ -1,0 +1,7 @@
+﻿body {
+    @apply w-full h-full;
+}
+
+pre {
+    @apply inline-block;
+}
