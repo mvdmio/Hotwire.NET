@@ -12,7 +12,7 @@ namespace mvdmio.Hotwire.NET.ASP;
 ///    For more information, see: https://turbo.hotwired.dev/reference/streams
 /// </summary>
 [PublicAPI]
-public class TurboActionResult : IActionResult
+public class TurboStreamActionResult : IActionResult
 {
    /// <summary>
    ///    The actions that should be rendered in the HTTP response.
@@ -22,7 +22,7 @@ public class TurboActionResult : IActionResult
    /// <summary>
    ///    Constructor.
    /// </summary>
-   public TurboActionResult(IEnumerable<ITurboAction> actions)
+   public TurboStreamActionResult(IEnumerable<ITurboAction> actions)
    {
       Actions = actions;
    }

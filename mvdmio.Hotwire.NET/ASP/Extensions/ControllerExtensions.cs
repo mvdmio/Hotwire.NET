@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using mvdmio.Hotwire.NET.ASP.Interfaces;
 
 namespace mvdmio.Hotwire.NET.ASP.Extensions;
 
@@ -15,6 +16,14 @@ namespace mvdmio.Hotwire.NET.ASP.Extensions;
 [PublicAPI]
 public static class ControllerExtensions
 {
+   /// <summary>
+   ///    Create a <see cref="TurboStreamActionResult" /> object that renders a turbo stream to the response.
+   /// </summary>
+   public static TurboStreamActionResult TurboStream(this Controller controller, params ITurboAction[] actions)
+   {
+      return new TurboStreamActionResult(actions);
+   }
+
    /// <summary>
    ///    Render a partial view to string.
    /// </summary>
