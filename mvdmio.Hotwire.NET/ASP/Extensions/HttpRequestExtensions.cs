@@ -16,6 +16,7 @@ public static class HttpRequestExtensions
       // For more info, see: https://turbo.hotwired.dev/handbook/streams#streaming-from-http-responses
       
       var acceptHeader = request.Headers["Accept"];
-      return acceptHeader.Contains("text/vnd.turbo-stream.html");
+      var values = acceptHeader.SelectMany(x => x.Split(",")).Select(x => x.Trim());
+      return values.Contains("text/vnd.turbo-stream.html");
    }
 }
