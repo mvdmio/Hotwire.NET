@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
+using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
@@ -27,7 +28,7 @@ public static class ControllerExtensions
    /// <summary>
    ///    Render a partial view to string.
    /// </summary>
-   public static async Task<string> RenderView<TModel>(this Controller controller, string viewNamePath, TModel model)
+   public static async Task<HtmlString> RenderView<TModel>(this Controller controller, string viewNamePath, TModel model)
    {
       var viewData = new ViewDataDictionary<TModel>(controller.ViewData) {
          Model = model
@@ -50,13 +51,13 @@ public static class ControllerExtensions
       );
 
       await viewResult.View.RenderAsync(viewContext);
-      return writer.GetStringBuilder().ToString();
+      return new HtmlString(writer.GetStringBuilder().ToString());
    }
 
    /// <summary>
    ///    Render a partial view to string, without a model present.
    /// </summary>
-   public static async Task<string> RenderView(this Controller controller, string viewNamePath)
+   public static async Task<HtmlString> RenderView(this Controller controller, string viewNamePath)
    {
       var viewData = new ViewDataDictionary(controller.ViewData);
       var viewResult = LoadView(controller, viewNamePath, viewData);
@@ -76,7 +77,7 @@ public static class ControllerExtensions
       );
 
       await viewResult.View.RenderAsync(viewContext);
-      return writer.GetStringBuilder().ToString();
+      return new HtmlString(writer.GetStringBuilder().ToString());
    }
 
    private static ViewEngineResult LoadView(Controller controller, string viewNamePath, ViewDataDictionary viewDataDictionary)
