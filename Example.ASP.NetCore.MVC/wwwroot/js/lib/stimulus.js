@@ -9,32 +9,38 @@ class EventListener {
         this.eventOptions = eventOptions;
         this.unorderedBindings = new Set();
     }
+
     connect() {
         this.eventTarget.addEventListener(this.eventName, this, this.eventOptions);
     }
+
     disconnect() {
         this.eventTarget.removeEventListener(this.eventName, this, this.eventOptions);
     }
+
     bindingConnected(binding) {
         this.unorderedBindings.add(binding);
     }
+
     bindingDisconnected(binding) {
         this.unorderedBindings.delete(binding);
     }
+
     handleEvent(event) {
         const extendedEvent = extendEvent(event);
         for (const binding of this.bindings) {
             if (extendedEvent.immediatePropagationStopped) {
                 break;
-            }
-            else {
+            } else {
                 binding.handleEvent(extendedEvent);
             }
         }
     }
+
     hasBindings() {
         return this.unorderedBindings.size > 0;
     }
+
     get bindings() {
         return Array.from(this.unorderedBindings).sort((left, right) => {
             const leftIndex = left.index, rightIndex = right.index;
@@ -42,12 +48,12 @@ class EventListener {
         });
     }
 }
+
 function extendEvent(event) {
     if ("immediatePropagationStopped" in event) {
         return event;
-    }
-    else {
-        const { stopImmediatePropagation } = event;
+    } else {
+        const {stopImmediatePropagation} = event;
         return Object.assign(event, {
             immediatePropagationStopped: false,
             stopImmediatePropagation() {
@@ -64,32 +70,39 @@ class Dispatcher {
         this.eventListenerMaps = new Map();
         this.started = false;
     }
+
     start() {
         if (!this.started) {
             this.started = true;
             this.eventListeners.forEach((eventListener) => eventListener.connect());
         }
     }
+
     stop() {
         if (this.started) {
             this.started = false;
             this.eventListeners.forEach((eventListener) => eventListener.disconnect());
         }
     }
+
     get eventListeners() {
         return Array.from(this.eventListenerMaps.values()).reduce((listeners, map) => listeners.concat(Array.from(map.values())), []);
     }
+
     bindingConnected(binding) {
         this.fetchEventListenerForBinding(binding).bindingConnected(binding);
     }
+
     bindingDisconnected(binding, clearEventListeners = false) {
         this.fetchEventListenerForBinding(binding).bindingDisconnected(binding);
         if (clearEventListeners)
             this.clearEventListenersForBinding(binding);
     }
+
     handleError(error, message, detail = {}) {
         this.application.handleError(error, `Error ${message}`, detail);
     }
+
     clearEventListenersForBinding(binding) {
         const eventListener = this.fetchEventListenerForBinding(binding);
         if (!eventListener.hasBindings()) {
@@ -97,18 +110,21 @@ class Dispatcher {
             this.removeMappedEventListenerFor(binding);
         }
     }
+
     removeMappedEventListenerFor(binding) {
-        const { eventTarget, eventName, eventOptions } = binding;
+        const {eventTarget, eventName, eventOptions} = binding;
         const eventListenerMap = this.fetchEventListenerMapForEventTarget(eventTarget);
         const cacheKey = this.cacheKey(eventName, eventOptions);
         eventListenerMap.delete(cacheKey);
         if (eventListenerMap.size == 0)
             this.eventListenerMaps.delete(eventTarget);
     }
+
     fetchEventListenerForBinding(binding) {
-        const { eventTarget, eventName, eventOptions } = binding;
+        const {eventTarget, eventName, eventOptions} = binding;
         return this.fetchEventListener(eventTarget, eventName, eventOptions);
     }
+
     fetchEventListener(eventTarget, eventName, eventOptions) {
         const eventListenerMap = this.fetchEventListenerMapForEventTarget(eventTarget);
         const cacheKey = this.cacheKey(eventName, eventOptions);
@@ -119,6 +135,7 @@ class Dispatcher {
         }
         return eventListener;
     }
+
     createEventListener(eventTarget, eventName, eventOptions) {
         const eventListener = new EventListener(eventTarget, eventName, eventOptions);
         if (this.started) {
@@ -126,6 +143,7 @@ class Dispatcher {
         }
         return eventListener;
     }
+
     fetchEventListenerMapForEventTarget(eventTarget) {
         let eventListenerMap = this.eventListenerMaps.get(eventTarget);
         if (!eventListenerMap) {
@@ -134,38 +152,39 @@ class Dispatcher {
         }
         return eventListenerMap;
     }
+
     cacheKey(eventName, eventOptions) {
         const parts = [eventName];
         Object.keys(eventOptions)
             .sort()
             .forEach((key) => {
-            parts.push(`${eventOptions[key] ? "" : "!"}${key}`);
-        });
+                parts.push(`${eventOptions[key] ? "" : "!"}${key}`);
+            });
         return parts.join(":");
     }
 }
 
 const defaultActionDescriptorFilters = {
-    stop({ event, value }) {
+    stop({event, value}) {
         if (value)
             event.stopPropagation();
         return true;
     },
-    prevent({ event, value }) {
+    prevent({event, value}) {
         if (value)
             event.preventDefault();
         return true;
     },
-    self({ event, value, element }) {
+    self({event, value, element}) {
         if (value) {
             return element === event.target;
-        }
-        else {
+        } else {
             return true;
         }
     },
 };
 const descriptorPattern = /^(?:(.+?)(?:\.(.+?))?(?:@(window|document))?->)?(.+?)(?:#([^:]+?))(?::(.+))?$/;
+
 function parseActionDescriptorString(descriptorString) {
     const source = descriptorString.trim();
     const matches = source.match(descriptorPattern) || [];
@@ -184,24 +203,25 @@ function parseActionDescriptorString(descriptorString) {
         keyFilter,
     };
 }
+
 function parseEventTarget(eventTargetName) {
     if (eventTargetName == "window") {
         return window;
-    }
-    else if (eventTargetName == "document") {
+    } else if (eventTargetName == "document") {
         return document;
     }
 }
+
 function parseEventOptions(eventOptions) {
     return eventOptions
         .split(":")
-        .reduce((options, token) => Object.assign(options, { [token.replace(/^!/, "")]: !/^!/.test(token) }), {});
+        .reduce((options, token) => Object.assign(options, {[token.replace(/^!/, "")]: !/^!/.test(token)}), {});
 }
+
 function stringifyEventTarget(eventTarget) {
     if (eventTarget == window) {
         return "window";
-    }
-    else if (eventTarget == document) {
+    } else if (eventTarget == document) {
         return "document";
     }
 }
@@ -209,15 +229,19 @@ function stringifyEventTarget(eventTarget) {
 function camelize(value) {
     return value.replace(/(?:[_-])([a-z0-9])/g, (_, char) => char.toUpperCase());
 }
+
 function namespaceCamelize(value) {
     return camelize(value.replace(/--/g, "-").replace(/__/g, "_"));
 }
+
 function capitalize(value) {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
+
 function dasherize(value) {
     return value.replace(/([A-Z])/g, (_, char) => `-${char.toLowerCase()}`);
 }
+
 function tokenize(value) {
     return value.match(/[^\s]+/g) || [];
 }
@@ -234,14 +258,17 @@ class Action {
         this.keyFilter = descriptor.keyFilter || "";
         this.schema = schema;
     }
+
     static forToken(token, schema) {
         return new this(token.element, token.index, parseActionDescriptorString(token.content), schema);
     }
+
     toString() {
         const eventFilter = this.keyFilter ? `.${this.keyFilter}` : "";
         const eventTarget = this.eventTargetName ? `@${this.eventTargetName}` : "";
         return `${this.eventName}${eventFilter}${eventTarget}->${this.identifier}#${this.methodName}`;
     }
+
     isFilterTarget(event) {
         if (!this.keyFilter) {
             return false;
@@ -261,10 +288,11 @@ class Action {
         }
         return this.keyMappings[standardFilter].toLowerCase() !== event.key.toLowerCase();
     }
+
     get params() {
         const params = {};
         const pattern = new RegExp(`^data-${this.identifier}-(.+)-param$`, "i");
-        for (const { name, value } of Array.from(this.element.attributes)) {
+        for (const {name, value} of Array.from(this.element.attributes)) {
             const match = name.match(pattern);
             const key = match && match[1];
             if (key) {
@@ -273,13 +301,16 @@ class Action {
         }
         return params;
     }
+
     get eventTargetName() {
         return stringifyEventTarget(this.eventTarget);
     }
+
     get keyMappings() {
         return this.schema.keyMappings;
     }
 }
+
 const defaultEventNames = {
     a: () => "click",
     button: () => "click",
@@ -289,20 +320,22 @@ const defaultEventNames = {
     select: () => "change",
     textarea: () => "input",
 };
+
 function getDefaultEventNameForElement(element) {
     const tagName = element.tagName.toLowerCase();
     if (tagName in defaultEventNames) {
         return defaultEventNames[tagName](element);
     }
 }
+
 function error(message) {
     throw new Error(message);
 }
+
 function typecast(value) {
     try {
         return JSON.parse(value);
-    }
-    catch (o_O) {
+    } catch (o_O) {
         return value;
     }
 }
@@ -312,26 +345,33 @@ class Binding {
         this.context = context;
         this.action = action;
     }
+
     get index() {
         return this.action.index;
     }
+
     get eventTarget() {
         return this.action.eventTarget;
     }
+
     get eventOptions() {
         return this.action.eventOptions;
     }
+
     get identifier() {
         return this.context.identifier;
     }
+
     handleEvent(event) {
         if (this.willBeInvokedByEvent(event) && this.applyEventModifiers(event)) {
             this.invokeWithEvent(event);
         }
     }
+
     get eventName() {
         return this.action.eventName;
     }
+
     get method() {
         const method = this.controller[this.methodName];
         if (typeof method == "function") {
@@ -339,35 +379,36 @@ class Binding {
         }
         throw new Error(`Action "${this.action}" references undefined method "${this.methodName}"`);
     }
+
     applyEventModifiers(event) {
-        const { element } = this.action;
-        const { actionDescriptorFilters } = this.context.application;
+        const {element} = this.action;
+        const {actionDescriptorFilters} = this.context.application;
         let passes = true;
         for (const [name, value] of Object.entries(this.eventOptions)) {
             if (name in actionDescriptorFilters) {
                 const filter = actionDescriptorFilters[name];
-                passes = passes && filter({ name, value, event, element });
-            }
-            else {
-                continue;
+                passes = passes && filter({name, value, event, element});
+            } else {
+
             }
         }
         return passes;
     }
+
     invokeWithEvent(event) {
-        const { target, currentTarget } = event;
+        const {target, currentTarget} = event;
         try {
-            const { params } = this.action;
-            const actionEvent = Object.assign(event, { params });
+            const {params} = this.action;
+            const actionEvent = Object.assign(event, {params});
             this.method.call(this.controller, actionEvent);
-            this.context.logDebugActivity(this.methodName, { event, target, currentTarget, action: this.methodName });
-        }
-        catch (error) {
-            const { identifier, controller, element, index } = this;
-            const detail = { identifier, controller, element, index, event };
+            this.context.logDebugActivity(this.methodName, {event, target, currentTarget, action: this.methodName});
+        } catch (error) {
+            const {identifier, controller, element, index} = this;
+            const detail = {identifier, controller, element, index, event};
             this.context.handleError(error, `invoking action "${this.action}"`, detail);
         }
     }
+
     willBeInvokedByEvent(event) {
         const eventTarget = event.target;
         if (event instanceof KeyboardEvent && this.action.isFilterTarget(event)) {
@@ -375,23 +416,25 @@ class Binding {
         }
         if (this.element === eventTarget) {
             return true;
-        }
-        else if (eventTarget instanceof Element && this.element.contains(eventTarget)) {
+        } else if (eventTarget instanceof Element && this.element.contains(eventTarget)) {
             return this.scope.containsElement(eventTarget);
-        }
-        else {
+        } else {
             return this.scope.containsElement(this.action.element);
         }
     }
+
     get controller() {
         return this.context.controller;
     }
+
     get methodName() {
         return this.action.methodName;
     }
+
     get element() {
         return this.scope.element;
     }
+
     get scope() {
         return this.context.scope;
     }
@@ -399,13 +442,14 @@ class Binding {
 
 class ElementObserver {
     constructor(element, delegate) {
-        this.mutationObserverInit = { attributes: true, childList: true, subtree: true };
+        this.mutationObserverInit = {attributes: true, childList: true, subtree: true};
         this.element = element;
         this.started = false;
         this.delegate = delegate;
         this.elements = new Set();
         this.mutationObserver = new MutationObserver((mutations) => this.processMutations(mutations));
     }
+
     start() {
         if (!this.started) {
             this.started = true;
@@ -413,6 +457,7 @@ class ElementObserver {
             this.refresh();
         }
     }
+
     pause(callback) {
         if (this.started) {
             this.mutationObserver.disconnect();
@@ -424,6 +469,7 @@ class ElementObserver {
             this.started = true;
         }
     }
+
     stop() {
         if (this.started) {
             this.mutationObserver.takeRecords();
@@ -431,6 +477,7 @@ class ElementObserver {
             this.started = false;
         }
     }
+
     refresh() {
         if (this.started) {
             const matches = new Set(this.matchElementsInTree());
@@ -444,6 +491,7 @@ class ElementObserver {
             }
         }
     }
+
     processMutations(mutations) {
         if (this.started) {
             for (const mutation of mutations) {
@@ -451,29 +499,29 @@ class ElementObserver {
             }
         }
     }
+
     processMutation(mutation) {
         if (mutation.type == "attributes") {
             this.processAttributeChange(mutation.target, mutation.attributeName);
-        }
-        else if (mutation.type == "childList") {
+        } else if (mutation.type == "childList") {
             this.processRemovedNodes(mutation.removedNodes);
             this.processAddedNodes(mutation.addedNodes);
         }
     }
+
     processAttributeChange(node, attributeName) {
         const element = node;
         if (this.elements.has(element)) {
             if (this.delegate.elementAttributeChanged && this.matchElement(element)) {
                 this.delegate.elementAttributeChanged(element, attributeName);
-            }
-            else {
+            } else {
                 this.removeElement(element);
             }
-        }
-        else if (this.matchElement(element)) {
+        } else if (this.matchElement(element)) {
             this.addElement(element);
         }
     }
+
     processRemovedNodes(nodes) {
         for (const node of Array.from(nodes)) {
             const element = this.elementFromNode(node);
@@ -482,6 +530,7 @@ class ElementObserver {
             }
         }
     }
+
     processAddedNodes(nodes) {
         for (const node of Array.from(nodes)) {
             const element = this.elementFromNode(node);
@@ -490,30 +539,35 @@ class ElementObserver {
             }
         }
     }
+
     matchElement(element) {
         return this.delegate.matchElement(element);
     }
+
     matchElementsInTree(tree = this.element) {
         return this.delegate.matchElementsInTree(tree);
     }
+
     processTree(tree, processor) {
         for (const element of this.matchElementsInTree(tree)) {
             processor.call(this, element);
         }
     }
+
     elementFromNode(node) {
         if (node.nodeType == Node.ELEMENT_NODE) {
             return node;
         }
     }
+
     elementIsActive(element) {
         if (element.isConnected != this.element.isConnected) {
             return false;
-        }
-        else {
+        } else {
             return this.element.contains(element);
         }
     }
+
     addElement(element) {
         if (!this.elements.has(element)) {
             if (this.elementIsActive(element)) {
@@ -524,6 +578,7 @@ class ElementObserver {
             }
         }
     }
+
     removeElement(element) {
         if (this.elements.has(element)) {
             this.elements.delete(element);
@@ -540,45 +595,57 @@ class AttributeObserver {
         this.delegate = delegate;
         this.elementObserver = new ElementObserver(element, this);
     }
+
     get element() {
         return this.elementObserver.element;
     }
+
     get selector() {
         return `[${this.attributeName}]`;
     }
+
     start() {
         this.elementObserver.start();
     }
+
     pause(callback) {
         this.elementObserver.pause(callback);
     }
+
     stop() {
         this.elementObserver.stop();
     }
+
     refresh() {
         this.elementObserver.refresh();
     }
+
     get started() {
         return this.elementObserver.started;
     }
+
     matchElement(element) {
         return element.hasAttribute(this.attributeName);
     }
+
     matchElementsInTree(tree) {
         const match = this.matchElement(tree) ? [tree] : [];
         const matches = Array.from(tree.querySelectorAll(this.selector));
         return match.concat(matches);
     }
+
     elementMatched(element) {
         if (this.delegate.elementMatchedAttribute) {
             this.delegate.elementMatchedAttribute(element, this.attributeName);
         }
     }
+
     elementUnmatched(element) {
         if (this.delegate.elementUnmatchedAttribute) {
             this.delegate.elementUnmatchedAttribute(element, this.attributeName);
         }
     }
+
     elementAttributeChanged(element, attributeName) {
         if (this.delegate.elementAttributeValueChanged && this.attributeName == attributeName) {
             this.delegate.elementAttributeValueChanged(element, attributeName);
@@ -589,10 +656,12 @@ class AttributeObserver {
 function add(map, key, value) {
     fetch(map, key).add(value);
 }
+
 function del(map, key, value) {
     fetch(map, key).delete(value);
     prune(map, key);
 }
+
 function fetch(map, key) {
     let values = map.get(key);
     if (!values) {
@@ -601,6 +670,7 @@ function fetch(map, key) {
     }
     return values;
 }
+
 function prune(map, key) {
     const values = map.get(key);
     if (values != null && values.size == 0) {
@@ -612,38 +682,48 @@ class Multimap {
     constructor() {
         this.valuesByKey = new Map();
     }
+
     get keys() {
         return Array.from(this.valuesByKey.keys());
     }
+
     get values() {
         const sets = Array.from(this.valuesByKey.values());
         return sets.reduce((values, set) => values.concat(Array.from(set)), []);
     }
+
     get size() {
         const sets = Array.from(this.valuesByKey.values());
         return sets.reduce((size, set) => size + set.size, 0);
     }
+
     add(key, value) {
         add(this.valuesByKey, key, value);
     }
+
     delete(key, value) {
         del(this.valuesByKey, key, value);
     }
+
     has(key, value) {
         const values = this.valuesByKey.get(key);
         return values != null && values.has(value);
     }
+
     hasKey(key) {
         return this.valuesByKey.has(key);
     }
+
     hasValue(value) {
         const sets = Array.from(this.valuesByKey.values());
         return sets.some((set) => set.has(value));
     }
+
     getValuesForKey(key) {
         const values = this.valuesByKey.get(key);
         return values ? Array.from(values) : [];
     }
+
     getKeysForValue(value) {
         return Array.from(this.valuesByKey)
             .filter(([_key, values]) => values.has(value))
@@ -656,20 +736,25 @@ class IndexedMultimap extends Multimap {
         super();
         this.keysByValue = new Map();
     }
+
     get values() {
         return Array.from(this.keysByValue.keys());
     }
+
     add(key, value) {
         super.add(key, value);
         add(this.keysByValue, value, key);
     }
+
     delete(key, value) {
         super.delete(key, value);
         del(this.keysByValue, value, key);
     }
+
     hasValue(value) {
         return this.keysByValue.has(value);
     }
+
     getKeysForValue(value) {
         const set = this.keysByValue.get(value);
         return set ? Array.from(set) : [];
@@ -684,24 +769,31 @@ class SelectorObserver {
         this.delegate = delegate;
         this.matchesByElement = new Multimap();
     }
+
     get started() {
         return this.elementObserver.started;
     }
+
     start() {
         this.elementObserver.start();
     }
+
     pause(callback) {
         this.elementObserver.pause(callback);
     }
+
     stop() {
         this.elementObserver.stop();
     }
+
     refresh() {
         this.elementObserver.refresh();
     }
+
     get element() {
         return this.elementObserver.element;
     }
+
     matchElement(element) {
         const matches = element.matches(this.selector);
         if (this.delegate.selectorMatchElement) {
@@ -709,17 +801,21 @@ class SelectorObserver {
         }
         return matches;
     }
+
     matchElementsInTree(tree) {
         const match = this.matchElement(tree) ? [tree] : [];
         const matches = Array.from(tree.querySelectorAll(this.selector)).filter((match) => this.matchElement(match));
         return match.concat(matches);
     }
+
     elementMatched(element) {
         this.selectorMatched(element);
     }
+
     elementUnmatched(element) {
         this.selectorUnmatched(element);
     }
+
     elementAttributeChanged(element, _attributeName) {
         const matches = this.matchElement(element);
         const matchedBefore = this.matchesByElement.has(this.selector, element);
@@ -727,12 +823,14 @@ class SelectorObserver {
             this.selectorUnmatched(element);
         }
     }
+
     selectorMatched(element) {
         if (this.delegate.selectorMatched) {
             this.delegate.selectorMatched(element, this.selector, this.details);
             this.matchesByElement.add(this.selector, element);
         }
     }
+
     selectorUnmatched(element) {
         this.delegate.selectorUnmatched(element, this.selector, this.details);
         this.matchesByElement.delete(this.selector, element);
@@ -747,13 +845,15 @@ class StringMapObserver {
         this.stringMap = new Map();
         this.mutationObserver = new MutationObserver((mutations) => this.processMutations(mutations));
     }
+
     start() {
         if (!this.started) {
             this.started = true;
-            this.mutationObserver.observe(this.element, { attributes: true, attributeOldValue: true });
+            this.mutationObserver.observe(this.element, {attributes: true, attributeOldValue: true});
             this.refresh();
         }
     }
+
     stop() {
         if (this.started) {
             this.mutationObserver.takeRecords();
@@ -761,6 +861,7 @@ class StringMapObserver {
             this.started = false;
         }
     }
+
     refresh() {
         if (this.started) {
             for (const attributeName of this.knownAttributeNames) {
@@ -768,6 +869,7 @@ class StringMapObserver {
             }
         }
     }
+
     processMutations(mutations) {
         if (this.started) {
             for (const mutation of mutations) {
@@ -775,12 +877,14 @@ class StringMapObserver {
             }
         }
     }
+
     processMutation(mutation) {
         const attributeName = mutation.attributeName;
         if (attributeName) {
             this.refreshAttribute(attributeName, mutation.oldValue);
         }
     }
+
     refreshAttribute(attributeName, oldValue) {
         const key = this.delegate.getStringMapKeyForAttribute(attributeName);
         if (key != null) {
@@ -796,33 +900,38 @@ class StringMapObserver {
                 this.stringMap.delete(attributeName);
                 if (oldValue)
                     this.stringMapKeyRemoved(key, attributeName, oldValue);
-            }
-            else {
+            } else {
                 this.stringMap.set(attributeName, value);
             }
         }
     }
+
     stringMapKeyAdded(key, attributeName) {
         if (this.delegate.stringMapKeyAdded) {
             this.delegate.stringMapKeyAdded(key, attributeName);
         }
     }
+
     stringMapValueChanged(value, key, oldValue) {
         if (this.delegate.stringMapValueChanged) {
             this.delegate.stringMapValueChanged(value, key, oldValue);
         }
     }
+
     stringMapKeyRemoved(key, attributeName, oldValue) {
         if (this.delegate.stringMapKeyRemoved) {
             this.delegate.stringMapKeyRemoved(key, attributeName, oldValue);
         }
     }
+
     get knownAttributeNames() {
         return Array.from(new Set(this.currentAttributeNames.concat(this.recordedAttributeNames)));
     }
+
     get currentAttributeNames() {
         return Array.from(this.element.attributes).map((attribute) => attribute.name);
     }
+
     get recordedAttributeNames() {
         return Array.from(this.stringMap.keys());
     }
@@ -834,80 +943,98 @@ class TokenListObserver {
         this.delegate = delegate;
         this.tokensByElement = new Multimap();
     }
+
     get started() {
         return this.attributeObserver.started;
     }
+
     start() {
         this.attributeObserver.start();
     }
+
     pause(callback) {
         this.attributeObserver.pause(callback);
     }
+
     stop() {
         this.attributeObserver.stop();
     }
+
     refresh() {
         this.attributeObserver.refresh();
     }
+
     get element() {
         return this.attributeObserver.element;
     }
+
     get attributeName() {
         return this.attributeObserver.attributeName;
     }
+
     elementMatchedAttribute(element) {
         this.tokensMatched(this.readTokensForElement(element));
     }
+
     elementAttributeValueChanged(element) {
         const [unmatchedTokens, matchedTokens] = this.refreshTokensForElement(element);
         this.tokensUnmatched(unmatchedTokens);
         this.tokensMatched(matchedTokens);
     }
+
     elementUnmatchedAttribute(element) {
         this.tokensUnmatched(this.tokensByElement.getValuesForKey(element));
     }
+
     tokensMatched(tokens) {
         tokens.forEach((token) => this.tokenMatched(token));
     }
+
     tokensUnmatched(tokens) {
         tokens.forEach((token) => this.tokenUnmatched(token));
     }
+
     tokenMatched(token) {
         this.delegate.tokenMatched(token);
         this.tokensByElement.add(token.element, token);
     }
+
     tokenUnmatched(token) {
         this.delegate.tokenUnmatched(token);
         this.tokensByElement.delete(token.element, token);
     }
+
     refreshTokensForElement(element) {
         const previousTokens = this.tokensByElement.getValuesForKey(element);
         const currentTokens = this.readTokensForElement(element);
         const firstDifferingIndex = zip(previousTokens, currentTokens).findIndex(([previousToken, currentToken]) => !tokensAreEqual(previousToken, currentToken));
         if (firstDifferingIndex == -1) {
             return [[], []];
-        }
-        else {
+        } else {
             return [previousTokens.slice(firstDifferingIndex), currentTokens.slice(firstDifferingIndex)];
         }
     }
+
     readTokensForElement(element) {
         const attributeName = this.attributeName;
         const tokenString = element.getAttribute(attributeName) || "";
         return parseTokenString(tokenString, element, attributeName);
     }
 }
+
 function parseTokenString(tokenString, element, attributeName) {
     return tokenString
         .trim()
         .split(/\s+/)
         .filter((content) => content.length)
-        .map((content, index) => ({ element, attributeName, content, index }));
+        .map((content, index) => ({element, attributeName, content, index}));
 }
+
 function zip(left, right) {
     const length = Math.max(left.length, right.length);
-    return Array.from({ length }, (_, index) => [left[index], right[index]]);
+    return Array.from({length}, (_, index) => [left[index], right[index]]);
 }
+
 function tokensAreEqual(left, right) {
     return left && right && left.index == right.index && left.content == right.content;
 }
@@ -919,40 +1046,49 @@ class ValueListObserver {
         this.parseResultsByToken = new WeakMap();
         this.valuesByTokenByElement = new WeakMap();
     }
+
     get started() {
         return this.tokenListObserver.started;
     }
+
     start() {
         this.tokenListObserver.start();
     }
+
     stop() {
         this.tokenListObserver.stop();
     }
+
     refresh() {
         this.tokenListObserver.refresh();
     }
+
     get element() {
         return this.tokenListObserver.element;
     }
+
     get attributeName() {
         return this.tokenListObserver.attributeName;
     }
+
     tokenMatched(token) {
-        const { element } = token;
-        const { value } = this.fetchParseResultForToken(token);
+        const {element} = token;
+        const {value} = this.fetchParseResultForToken(token);
         if (value) {
             this.fetchValuesByTokenForElement(element).set(token, value);
             this.delegate.elementMatchedValue(element, value);
         }
     }
+
     tokenUnmatched(token) {
-        const { element } = token;
-        const { value } = this.fetchParseResultForToken(token);
+        const {element} = token;
+        const {value} = this.fetchParseResultForToken(token);
         if (value) {
             this.fetchValuesByTokenForElement(element).delete(token);
             this.delegate.elementUnmatchedValue(element, value);
         }
     }
+
     fetchParseResultForToken(token) {
         let parseResult = this.parseResultsByToken.get(token);
         if (!parseResult) {
@@ -961,6 +1097,7 @@ class ValueListObserver {
         }
         return parseResult;
     }
+
     fetchValuesByTokenForElement(element) {
         let valuesByToken = this.valuesByTokenByElement.get(element);
         if (!valuesByToken) {
@@ -969,13 +1106,13 @@ class ValueListObserver {
         }
         return valuesByToken;
     }
+
     parseToken(token) {
         try {
             const value = this.delegate.parseValueForToken(token);
-            return { value };
-        }
-        catch (error) {
-            return { error };
+            return {value};
+        } catch (error) {
+            return {error};
         }
     }
 }
@@ -986,12 +1123,14 @@ class BindingObserver {
         this.delegate = delegate;
         this.bindingsByAction = new Map();
     }
+
     start() {
         if (!this.valueListObserver) {
             this.valueListObserver = new ValueListObserver(this.element, this.actionAttribute, this);
             this.valueListObserver.start();
         }
     }
+
     stop() {
         if (this.valueListObserver) {
             this.valueListObserver.stop();
@@ -999,26 +1138,33 @@ class BindingObserver {
             this.disconnectAllActions();
         }
     }
+
     get element() {
         return this.context.element;
     }
+
     get identifier() {
         return this.context.identifier;
     }
+
     get actionAttribute() {
         return this.schema.actionAttribute;
     }
+
     get schema() {
         return this.context.schema;
     }
+
     get bindings() {
         return Array.from(this.bindingsByAction.values());
     }
+
     connectAction(action) {
         const binding = new Binding(this.context, action);
         this.bindingsByAction.set(action, binding);
         this.delegate.bindingConnected(binding);
     }
+
     disconnectAction(action) {
         const binding = this.bindingsByAction.get(action);
         if (binding) {
@@ -1026,19 +1172,23 @@ class BindingObserver {
             this.delegate.bindingDisconnected(binding);
         }
     }
+
     disconnectAllActions() {
         this.bindings.forEach((binding) => this.delegate.bindingDisconnected(binding, true));
         this.bindingsByAction.clear();
     }
+
     parseValueForToken(token) {
         const action = Action.forToken(token, this.schema);
         if (action.identifier == this.identifier) {
             return action;
         }
     }
+
     elementMatchedValue(element, action) {
         this.connectAction(action);
     }
+
     elementUnmatchedValue(element, action) {
         this.disconnectAction(action);
     }
@@ -1051,30 +1201,37 @@ class ValueObserver {
         this.stringMapObserver = new StringMapObserver(this.element, this);
         this.valueDescriptorMap = this.controller.valueDescriptorMap;
     }
+
     start() {
         this.stringMapObserver.start();
         this.invokeChangedCallbacksForDefaultValues();
     }
+
     stop() {
         this.stringMapObserver.stop();
     }
+
     get element() {
         return this.context.element;
     }
+
     get controller() {
         return this.context.controller;
     }
+
     getStringMapKeyForAttribute(attributeName) {
         if (attributeName in this.valueDescriptorMap) {
             return this.valueDescriptorMap[attributeName].name;
         }
     }
+
     stringMapKeyAdded(key, attributeName) {
         const descriptor = this.valueDescriptorMap[attributeName];
         if (!this.hasValue(key)) {
             this.invokeChangedCallback(key, descriptor.writer(this.receiver[key]), descriptor.writer(descriptor.defaultValue));
         }
     }
+
     stringMapValueChanged(value, name, oldValue) {
         const descriptor = this.valueDescriptorNameMap[name];
         if (value === null)
@@ -1084,22 +1241,24 @@ class ValueObserver {
         }
         this.invokeChangedCallback(name, value, oldValue);
     }
+
     stringMapKeyRemoved(key, attributeName, oldValue) {
         const descriptor = this.valueDescriptorNameMap[key];
         if (this.hasValue(key)) {
             this.invokeChangedCallback(key, descriptor.writer(this.receiver[key]), oldValue);
-        }
-        else {
+        } else {
             this.invokeChangedCallback(key, descriptor.writer(descriptor.defaultValue), oldValue);
         }
     }
+
     invokeChangedCallbacksForDefaultValues() {
-        for (const { key, name, defaultValue, writer } of this.valueDescriptors) {
+        for (const {key, name, defaultValue, writer} of this.valueDescriptors) {
             if (defaultValue != undefined && !this.controller.data.has(key)) {
                 this.invokeChangedCallback(name, writer(defaultValue), undefined);
             }
         }
     }
+
     invokeChangedCallback(name, rawValue, rawOldValue) {
         const changedMethodName = `${name}Changed`;
         const changedMethod = this.receiver[changedMethodName];
@@ -1112,8 +1271,7 @@ class ValueObserver {
                     oldValue = descriptor.reader(rawOldValue);
                 }
                 changedMethod.call(this.receiver, value, oldValue);
-            }
-            catch (error) {
+            } catch (error) {
                 if (error instanceof TypeError) {
                     error.message = `Stimulus Value "${this.context.identifier}.${descriptor.name}" - ${error.message}`;
                 }
@@ -1121,10 +1279,12 @@ class ValueObserver {
             }
         }
     }
+
     get valueDescriptors() {
-        const { valueDescriptorMap } = this;
+        const {valueDescriptorMap} = this;
         return Object.keys(valueDescriptorMap).map((key) => valueDescriptorMap[key]);
     }
+
     get valueDescriptorNameMap() {
         const descriptors = {};
         Object.keys(this.valueDescriptorMap).forEach((key) => {
@@ -1133,6 +1293,7 @@ class ValueObserver {
         });
         return descriptors;
     }
+
     hasValue(attributeName) {
         const descriptor = this.valueDescriptorNameMap[attributeName];
         const hasMethodName = `has${capitalize(descriptor.name)}`;
@@ -1146,12 +1307,14 @@ class TargetObserver {
         this.delegate = delegate;
         this.targetsByName = new Multimap();
     }
+
     start() {
         if (!this.tokenListObserver) {
             this.tokenListObserver = new TokenListObserver(this.element, this.attributeName, this);
             this.tokenListObserver.start();
         }
     }
+
     stop() {
         if (this.tokenListObserver) {
             this.disconnectAllTargets();
@@ -1159,14 +1322,17 @@ class TargetObserver {
             delete this.tokenListObserver;
         }
     }
-    tokenMatched({ element, content: name }) {
+
+    tokenMatched({element, content: name}) {
         if (this.scope.containsElement(element)) {
             this.connectTarget(element, name);
         }
     }
-    tokenUnmatched({ element, content: name }) {
+
+    tokenUnmatched({element, content: name}) {
         this.disconnectTarget(element, name);
     }
+
     connectTarget(element, name) {
         var _a;
         if (!this.targetsByName.has(name, element)) {
@@ -1174,6 +1340,7 @@ class TargetObserver {
             (_a = this.tokenListObserver) === null || _a === void 0 ? void 0 : _a.pause(() => this.delegate.targetConnected(element, name));
         }
     }
+
     disconnectTarget(element, name) {
         var _a;
         if (this.targetsByName.has(name, element)) {
@@ -1181,6 +1348,7 @@ class TargetObserver {
             (_a = this.tokenListObserver) === null || _a === void 0 ? void 0 : _a.pause(() => this.delegate.targetDisconnected(element, name));
         }
     }
+
     disconnectAllTargets() {
         for (const name of this.targetsByName.keys) {
             for (const element of this.targetsByName.getValuesForKey(name)) {
@@ -1188,12 +1356,15 @@ class TargetObserver {
             }
         }
     }
+
     get attributeName() {
         return `data-${this.context.identifier}-target`;
     }
+
     get element() {
         return this.context.element;
     }
+
     get scope() {
         return this.context.scope;
     }
@@ -1206,6 +1377,7 @@ function readInheritableStaticArrayValues(constructor, propertyName) {
         return values;
     }, new Set()));
 }
+
 function readInheritableStaticObjectPairs(constructor, propertyName) {
     const ancestors = getAncestorsForConstructor(constructor);
     return ancestors.reduce((pairs, constructor) => {
@@ -1213,6 +1385,7 @@ function readInheritableStaticObjectPairs(constructor, propertyName) {
         return pairs;
     }, []);
 }
+
 function getAncestorsForConstructor(constructor) {
     const ancestors = [];
     while (constructor) {
@@ -1221,10 +1394,12 @@ function getAncestorsForConstructor(constructor) {
     }
     return ancestors.reverse();
 }
+
 function getOwnStaticArrayValues(constructor, propertyName) {
     const definition = constructor[propertyName];
     return Array.isArray(definition) ? definition : [];
 }
+
 function getOwnStaticObjectPairs(constructor, propertyName) {
     const definition = constructor[propertyName];
     return definition ? Object.keys(definition).map((key) => [key, definition[key]]) : [];
@@ -1238,11 +1413,12 @@ class OutletObserver {
         this.outletElementsByName = new Multimap();
         this.selectorObserverMap = new Map();
     }
+
     start() {
         if (this.selectorObserverMap.size === 0) {
             this.outletDefinitions.forEach((outletName) => {
                 const selector = this.selector(outletName);
-                const details = { outletName };
+                const details = {outletName};
                 if (selector) {
                     this.selectorObserverMap.set(outletName, new SelectorObserver(document.body, selector, this, details));
                 }
@@ -1251,6 +1427,7 @@ class OutletObserver {
         }
         this.dependentContexts.forEach((context) => context.refresh());
     }
+
     stop() {
         if (this.selectorObserverMap.size > 0) {
             this.disconnectAllOutlets();
@@ -1258,25 +1435,30 @@ class OutletObserver {
             this.selectorObserverMap.clear();
         }
     }
+
     refresh() {
         this.selectorObserverMap.forEach((observer) => observer.refresh());
     }
-    selectorMatched(element, _selector, { outletName }) {
+
+    selectorMatched(element, _selector, {outletName}) {
         const outlet = this.getOutlet(element, outletName);
         if (outlet) {
             this.connectOutlet(outlet, element, outletName);
         }
     }
-    selectorUnmatched(element, _selector, { outletName }) {
+
+    selectorUnmatched(element, _selector, {outletName}) {
         const outlet = this.getOutletFromMap(element, outletName);
         if (outlet) {
             this.disconnectOutlet(outlet, element, outletName);
         }
     }
-    selectorMatchElement(element, { outletName }) {
+
+    selectorMatchElement(element, {outletName}) {
         return (this.hasOutlet(element, outletName) &&
             element.matches(`[${this.context.application.schema.controllerAttribute}~=${outletName}]`));
     }
+
     connectOutlet(outlet, element, outletName) {
         var _a;
         if (!this.outletElementsByName.has(outletName, element)) {
@@ -1285,6 +1467,7 @@ class OutletObserver {
             (_a = this.selectorObserverMap.get(outletName)) === null || _a === void 0 ? void 0 : _a.pause(() => this.delegate.outletConnected(outlet, element, outletName));
         }
     }
+
     disconnectOutlet(outlet, element, outletName) {
         var _a;
         if (this.outletElementsByName.has(outletName, element)) {
@@ -1294,6 +1477,7 @@ class OutletObserver {
                 .get(outletName)) === null || _a === void 0 ? void 0 : _a.pause(() => this.delegate.outletDisconnected(outlet, element, outletName));
         }
     }
+
     disconnectAllOutlets() {
         for (const outletName of this.outletElementsByName.keys) {
             for (const element of this.outletElementsByName.getValuesForKey(outletName)) {
@@ -1303,9 +1487,11 @@ class OutletObserver {
             }
         }
     }
+
     selector(outletName) {
         return this.scope.outlets.getSelectorForOutletName(outletName);
     }
+
     get outletDependencies() {
         const dependencies = new Multimap();
         this.router.modules.forEach((module) => {
@@ -1315,34 +1501,44 @@ class OutletObserver {
         });
         return dependencies;
     }
+
     get outletDefinitions() {
         return this.outletDependencies.getKeysForValue(this.identifier);
     }
+
     get dependentControllerIdentifiers() {
         return this.outletDependencies.getValuesForKey(this.identifier);
     }
+
     get dependentContexts() {
         const identifiers = this.dependentControllerIdentifiers;
         return this.router.contexts.filter((context) => identifiers.includes(context.identifier));
     }
+
     hasOutlet(element, outletName) {
         return !!this.getOutlet(element, outletName) || !!this.getOutletFromMap(element, outletName);
     }
+
     getOutlet(element, outletName) {
         return this.application.getControllerForElementAndIdentifier(element, outletName);
     }
+
     getOutletFromMap(element, outletName) {
         return this.outletsByName.getValuesForKey(outletName).find((outlet) => outlet.element === element);
     }
+
     get scope() {
         return this.context.scope;
     }
+
     get identifier() {
         return this.context.identifier;
     }
+
     get application() {
         return this.context.application;
     }
+
     get router() {
         return this.application.router;
     }
@@ -1351,8 +1547,8 @@ class OutletObserver {
 class Context {
     constructor(module, scope) {
         this.logDebugActivity = (functionName, detail = {}) => {
-            const { identifier, controller, element } = this;
-            detail = Object.assign({ identifier, controller, element }, detail);
+            const {identifier, controller, element} = this;
+            detail = Object.assign({identifier, controller, element}, detail);
             this.application.logDebugActivity(this.identifier, functionName, detail);
         };
         this.module = module;
@@ -1365,11 +1561,11 @@ class Context {
         try {
             this.controller.initialize();
             this.logDebugActivity("initialize");
-        }
-        catch (error) {
+        } catch (error) {
             this.handleError(error, "initializing controller");
         }
     }
+
     connect() {
         this.bindingObserver.start();
         this.valueObserver.start();
@@ -1378,20 +1574,20 @@ class Context {
         try {
             this.controller.connect();
             this.logDebugActivity("connect");
-        }
-        catch (error) {
+        } catch (error) {
             this.handleError(error, "connecting controller");
         }
     }
+
     refresh() {
         this.outletObserver.refresh();
     }
+
     disconnect() {
         try {
             this.controller.disconnect();
             this.logDebugActivity("disconnect");
-        }
-        catch (error) {
+        } catch (error) {
             this.handleError(error, "disconnecting controller");
         }
         this.outletObserver.stop();
@@ -1399,41 +1595,53 @@ class Context {
         this.valueObserver.stop();
         this.bindingObserver.stop();
     }
+
     get application() {
         return this.module.application;
     }
+
     get identifier() {
         return this.module.identifier;
     }
+
     get schema() {
         return this.application.schema;
     }
+
     get dispatcher() {
         return this.application.dispatcher;
     }
+
     get element() {
         return this.scope.element;
     }
+
     get parentElement() {
         return this.element.parentElement;
     }
+
     handleError(error, message, detail = {}) {
-        const { identifier, controller, element } = this;
-        detail = Object.assign({ identifier, controller, element }, detail);
+        const {identifier, controller, element} = this;
+        detail = Object.assign({identifier, controller, element}, detail);
         this.application.handleError(error, `Error ${message}`, detail);
     }
+
     targetConnected(element, name) {
         this.invokeControllerMethod(`${name}TargetConnected`, element);
     }
+
     targetDisconnected(element, name) {
         this.invokeControllerMethod(`${name}TargetDisconnected`, element);
     }
+
     outletConnected(outlet, element, name) {
         this.invokeControllerMethod(`${namespaceCamelize(name)}OutletConnected`, outlet, element);
     }
+
     outletDisconnected(outlet, element, name) {
         this.invokeControllerMethod(`${namespaceCamelize(name)}OutletDisconnected`, outlet, element);
     }
+
     invokeControllerMethod(methodName, ...args) {
         const controller = this.controller;
         if (typeof controller[methodName] == "function") {
@@ -1445,12 +1653,14 @@ class Context {
 function bless(constructor) {
     return shadow(constructor, getBlessedProperties(constructor));
 }
+
 function shadow(constructor, properties) {
     const shadowConstructor = extend(constructor);
     const shadowProperties = getShadowProperties(constructor.prototype, properties);
     Object.defineProperties(shadowConstructor.prototype, shadowProperties);
     return shadowConstructor;
 }
+
 function getBlessedProperties(constructor) {
     const blessings = readInheritableStaticArrayValues(constructor, "blessings");
     return blessings.reduce((blessedProperties, blessing) => {
@@ -1462,15 +1672,17 @@ function getBlessedProperties(constructor) {
         return blessedProperties;
     }, {});
 }
+
 function getShadowProperties(prototype, properties) {
     return getOwnKeys(properties).reduce((shadowProperties, key) => {
         const descriptor = getShadowedDescriptor(prototype, properties, key);
         if (descriptor) {
-            Object.assign(shadowProperties, { [key]: descriptor });
+            Object.assign(shadowProperties, {[key]: descriptor});
         }
         return shadowProperties;
     }, {});
 }
+
 function getShadowedDescriptor(prototype, properties, key) {
     const shadowingDescriptor = Object.getOwnPropertyDescriptor(prototype, key);
     const shadowedByValue = shadowingDescriptor && "value" in shadowingDescriptor;
@@ -1483,11 +1695,11 @@ function getShadowedDescriptor(prototype, properties, key) {
         return descriptor;
     }
 }
+
 const getOwnKeys = (() => {
     if (typeof Object.getOwnPropertySymbols == "function") {
         return (object) => [...Object.getOwnPropertyNames(object), ...Object.getOwnPropertySymbols(object)];
-    }
-    else {
+    } else {
         return Object.getOwnPropertyNames;
     }
 })();
@@ -1496,25 +1708,28 @@ const extend = (() => {
         function extended() {
             return Reflect.construct(constructor, arguments, new.target);
         }
+
         extended.prototype = Object.create(constructor.prototype, {
-            constructor: { value: extended },
+            constructor: {value: extended},
         });
         Reflect.setPrototypeOf(extended, constructor);
         return extended;
     }
+
     function testReflectExtension() {
         const a = function () {
             this.a.call(this);
         };
         const b = extendWithReflect(a);
-        b.prototype.a = function () { };
+        b.prototype.a = function () {
+        };
         return new b();
     }
+
     try {
         testReflectExtension();
         return extendWithReflect;
-    }
-    catch (error) {
+    } catch (error) {
         return (constructor) => class extended extends constructor {
         };
     }
@@ -1534,20 +1749,25 @@ class Module {
         this.contextsByScope = new WeakMap();
         this.connectedContexts = new Set();
     }
+
     get identifier() {
         return this.definition.identifier;
     }
+
     get controllerConstructor() {
         return this.definition.controllerConstructor;
     }
+
     get contexts() {
         return Array.from(this.connectedContexts);
     }
+
     connectContextForScope(scope) {
         const context = this.fetchContextForScope(scope);
         this.connectedContexts.add(context);
         context.connect();
     }
+
     disconnectContextForScope(scope) {
         const context = this.contextsByScope.get(scope);
         if (context) {
@@ -1555,6 +1775,7 @@ class Module {
             context.disconnect();
         }
     }
+
     fetchContextForScope(scope) {
         let context = this.contextsByScope.get(scope);
         if (!context) {
@@ -1569,22 +1790,28 @@ class ClassMap {
     constructor(scope) {
         this.scope = scope;
     }
+
     has(name) {
         return this.data.has(this.getDataKey(name));
     }
+
     get(name) {
         return this.getAll(name)[0];
     }
+
     getAll(name) {
         const tokenString = this.data.get(this.getDataKey(name)) || "";
         return tokenize(tokenString);
     }
+
     getAttributeName(name) {
         return this.data.getAttributeNameForKey(this.getDataKey(name));
     }
+
     getDataKey(name) {
         return `${name}-class`;
     }
+
     get data() {
         return this.scope.data;
     }
@@ -1594,35 +1821,41 @@ class DataMap {
     constructor(scope) {
         this.scope = scope;
     }
+
     get element() {
         return this.scope.element;
     }
+
     get identifier() {
         return this.scope.identifier;
     }
+
     get(key) {
         const name = this.getAttributeNameForKey(key);
         return this.element.getAttribute(name);
     }
+
     set(key, value) {
         const name = this.getAttributeNameForKey(key);
         this.element.setAttribute(name, value);
         return this.get(key);
     }
+
     has(key) {
         const name = this.getAttributeNameForKey(key);
         return this.element.hasAttribute(name);
     }
+
     delete(key) {
         if (this.has(key)) {
             const name = this.getAttributeNameForKey(key);
             this.element.removeAttribute(name);
             return true;
-        }
-        else {
+        } else {
             return false;
         }
     }
+
     getAttributeNameForKey(key) {
         return `data-${this.identifier}-${dasherize(key)}`;
     }
@@ -1633,6 +1866,7 @@ class Guide {
         this.warnedKeysByObject = new WeakMap();
         this.logger = logger;
     }
+
     warn(object, key, message) {
         let warnedKeys = this.warnedKeysByObject.get(object);
         if (!warnedKeys) {
@@ -1654,21 +1888,27 @@ class TargetSet {
     constructor(scope) {
         this.scope = scope;
     }
+
     get element() {
         return this.scope.element;
     }
+
     get identifier() {
         return this.scope.identifier;
     }
+
     get schema() {
         return this.scope.schema;
     }
+
     has(targetName) {
         return this.find(targetName) != null;
     }
+
     find(...targetNames) {
         return targetNames.reduce((target, targetName) => target || this.findTarget(targetName) || this.findLegacyTarget(targetName), undefined);
     }
+
     findAll(...targetNames) {
         return targetNames.reduce((targets, targetName) => [
             ...targets,
@@ -1676,33 +1916,40 @@ class TargetSet {
             ...this.findAllLegacyTargets(targetName),
         ], []);
     }
+
     findTarget(targetName) {
         const selector = this.getSelectorForTargetName(targetName);
         return this.scope.findElement(selector);
     }
+
     findAllTargets(targetName) {
         const selector = this.getSelectorForTargetName(targetName);
         return this.scope.findAllElements(selector);
     }
+
     getSelectorForTargetName(targetName) {
         const attributeName = this.schema.targetAttributeForScope(this.identifier);
         return attributeValueContainsToken(attributeName, targetName);
     }
+
     findLegacyTarget(targetName) {
         const selector = this.getLegacySelectorForTargetName(targetName);
         return this.deprecate(this.scope.findElement(selector), targetName);
     }
+
     findAllLegacyTargets(targetName) {
         const selector = this.getLegacySelectorForTargetName(targetName);
         return this.scope.findAllElements(selector).map((element) => this.deprecate(element, targetName));
     }
+
     getLegacySelectorForTargetName(targetName) {
         const targetDescriptor = `${this.identifier}.${targetName}`;
         return attributeValueContainsToken(this.schema.targetAttribute, targetDescriptor);
     }
+
     deprecate(element, targetName) {
         if (element) {
-            const { identifier } = this;
+            const {identifier} = this;
             const attributeName = this.schema.targetAttribute;
             const revisedAttributeName = this.schema.targetAttributeForScope(identifier);
             this.guide.warn(element, `target:${targetName}`, `Please replace ${attributeName}="${identifier}.${targetName}" with ${revisedAttributeName}="${targetName}". ` +
@@ -1710,6 +1957,7 @@ class TargetSet {
         }
         return element;
     }
+
     get guide() {
         return this.scope.guide;
     }
@@ -1720,45 +1968,57 @@ class OutletSet {
         this.scope = scope;
         this.controllerElement = controllerElement;
     }
+
     get element() {
         return this.scope.element;
     }
+
     get identifier() {
         return this.scope.identifier;
     }
+
     get schema() {
         return this.scope.schema;
     }
+
     has(outletName) {
         return this.find(outletName) != null;
     }
+
     find(...outletNames) {
         return outletNames.reduce((outlet, outletName) => outlet || this.findOutlet(outletName), undefined);
     }
+
     findAll(...outletNames) {
         return outletNames.reduce((outlets, outletName) => [...outlets, ...this.findAllOutlets(outletName)], []);
     }
+
     getSelectorForOutletName(outletName) {
         const attributeName = this.schema.outletAttributeForScope(this.identifier, outletName);
         return this.controllerElement.getAttribute(attributeName);
     }
+
     findOutlet(outletName) {
         const selector = this.getSelectorForOutletName(outletName);
         if (selector)
             return this.findElement(selector, outletName);
     }
+
     findAllOutlets(outletName) {
         const selector = this.getSelectorForOutletName(outletName);
         return selector ? this.findAllElements(selector, outletName) : [];
     }
+
     findElement(selector, outletName) {
         const elements = this.scope.queryElements(selector);
         return elements.filter((element) => this.matchesElement(element, selector, outletName))[0];
     }
+
     findAllElements(selector, outletName) {
         const elements = this.scope.queryElements(selector);
         return elements.filter((element) => this.matchesElement(element, selector, outletName));
     }
+
     matchesElement(element, selector, outletName) {
         const controllerAttribute = element.getAttribute(this.scope.schema.controllerAttribute) || "";
         return element.matches(selector) && controllerAttribute.split(" ").includes(outletName);
@@ -1779,24 +2039,30 @@ class Scope {
         this.guide = new Guide(logger);
         this.outlets = new OutletSet(this.documentScope, element);
     }
+
     findElement(selector) {
         return this.element.matches(selector) ? this.element : this.queryElements(selector).find(this.containsElement);
     }
+
     findAllElements(selector) {
         return [
             ...(this.element.matches(selector) ? [this.element] : []),
             ...this.queryElements(selector).filter(this.containsElement),
         ];
     }
+
     queryElements(selector) {
         return Array.from(this.element.querySelectorAll(selector));
     }
+
     get controllerSelector() {
         return attributeValueContainsToken(this.schema.controllerAttribute, this.identifier);
     }
+
     get isDocumentScope() {
         return this.element === document.documentElement;
     }
+
     get documentScope() {
         return this.isDocumentScope
             ? this
@@ -1813,17 +2079,21 @@ class ScopeObserver {
         this.scopesByIdentifierByElement = new WeakMap();
         this.scopeReferenceCounts = new WeakMap();
     }
+
     start() {
         this.valueListObserver.start();
     }
+
     stop() {
         this.valueListObserver.stop();
     }
+
     get controllerAttribute() {
         return this.schema.controllerAttribute;
     }
+
     parseValueForToken(token) {
-        const { element, content: identifier } = token;
+        const {element, content: identifier} = token;
         const scopesByIdentifier = this.fetchScopesByIdentifierForElement(element);
         let scope = scopesByIdentifier.get(identifier);
         if (!scope) {
@@ -1832,6 +2102,7 @@ class ScopeObserver {
         }
         return scope;
     }
+
     elementMatchedValue(element, value) {
         const referenceCount = (this.scopeReferenceCounts.get(value) || 0) + 1;
         this.scopeReferenceCounts.set(value, referenceCount);
@@ -1839,6 +2110,7 @@ class ScopeObserver {
             this.delegate.scopeConnected(value);
         }
     }
+
     elementUnmatchedValue(element, value) {
         const referenceCount = this.scopeReferenceCounts.get(value);
         if (referenceCount) {
@@ -1848,6 +2120,7 @@ class ScopeObserver {
             }
         }
     }
+
     fetchScopesByIdentifierForElement(element) {
         let scopesByIdentifier = this.scopesByIdentifierByElement.get(element);
         if (!scopesByIdentifier) {
@@ -1865,30 +2138,39 @@ class Router {
         this.scopesByIdentifier = new Multimap();
         this.modulesByIdentifier = new Map();
     }
+
     get element() {
         return this.application.element;
     }
+
     get schema() {
         return this.application.schema;
     }
+
     get logger() {
         return this.application.logger;
     }
+
     get controllerAttribute() {
         return this.schema.controllerAttribute;
     }
+
     get modules() {
         return Array.from(this.modulesByIdentifier.values());
     }
+
     get contexts() {
         return this.modules.reduce((contexts, module) => contexts.concat(module.contexts), []);
     }
+
     start() {
         this.scopeObserver.start();
     }
+
     stop() {
         this.scopeObserver.stop();
     }
+
     loadDefinition(definition) {
         this.unloadIdentifier(definition.identifier);
         const module = new Module(this.application, definition);
@@ -1898,24 +2180,29 @@ class Router {
             afterLoad(definition.identifier, this.application);
         }
     }
+
     unloadIdentifier(identifier) {
         const module = this.modulesByIdentifier.get(identifier);
         if (module) {
             this.disconnectModule(module);
         }
     }
+
     getContextForElementAndIdentifier(element, identifier) {
         const module = this.modulesByIdentifier.get(identifier);
         if (module) {
             return module.contexts.find((context) => context.element == element);
         }
     }
+
     handleError(error, message, detail) {
         this.application.handleError(error, message, detail);
     }
+
     createScopeForElementAndIdentifier(element, identifier) {
         return new Scope(this.schema, element, identifier, this.logger);
     }
+
     scopeConnected(scope) {
         this.scopesByIdentifier.add(scope.identifier, scope);
         const module = this.modulesByIdentifier.get(scope.identifier);
@@ -1923,6 +2210,7 @@ class Router {
             module.connectContextForScope(scope);
         }
     }
+
     scopeDisconnected(scope) {
         this.scopesByIdentifier.delete(scope.identifier, scope);
         const module = this.modulesByIdentifier.get(scope.identifier);
@@ -1930,11 +2218,13 @@ class Router {
             module.disconnectContextForScope(scope);
         }
     }
+
     connectModule(module) {
         this.modulesByIdentifier.set(module.identifier, module);
         const scopes = this.scopesByIdentifier.getValuesForKey(module.identifier);
         scopes.forEach((scope) => module.connectContextForScope(scope));
     }
+
     disconnectModule(module) {
         this.modulesByIdentifier.delete(module.identifier);
         const scopes = this.scopesByIdentifier.getValuesForKey(module.identifier);
@@ -1948,10 +2238,22 @@ const defaultSchema = {
     targetAttribute: "data-target",
     targetAttributeForScope: (identifier) => `data-${identifier}-target`,
     outletAttributeForScope: (identifier, outlet) => `data-${identifier}-${outlet}-outlet`,
-    keyMappings: Object.assign(Object.assign({ enter: "Enter", tab: "Tab", esc: "Escape", space: " ", up: "ArrowUp", down: "ArrowDown", left: "ArrowLeft", right: "ArrowRight", home: "Home", end: "End" }, objectFromEntries("abcdefghijklmnopqrstuvwxyz".split("").map((c) => [c, c]))), objectFromEntries("0123456789".split("").map((n) => [n, n]))),
+    keyMappings: Object.assign(Object.assign({
+        enter: "Enter",
+        tab: "Tab",
+        esc: "Escape",
+        space: " ",
+        up: "ArrowUp",
+        down: "ArrowDown",
+        left: "ArrowLeft",
+        right: "ArrowRight",
+        home: "Home",
+        end: "End"
+    }, objectFromEntries("abcdefghijklmnopqrstuvwxyz".split("").map((c) => [c, c]))), objectFromEntries("0123456789".split("").map((n) => [n, n]))),
 };
+
 function objectFromEntries(array) {
-    return array.reduce((memo, [k, v]) => (Object.assign(Object.assign({}, memo), { [k]: v })), {});
+    return array.reduce((memo, [k, v]) => (Object.assign(Object.assign({}, memo), {[k]: v})), {});
 }
 
 class Application {
@@ -1969,11 +2271,13 @@ class Application {
         this.router = new Router(this);
         this.actionDescriptorFilters = Object.assign({}, defaultActionDescriptorFilters);
     }
+
     static start(element, schema) {
         const application = new this(element, schema);
         application.start();
         return application;
     }
+
     async start() {
         await domReady();
         this.logDebugActivity("application", "starting");
@@ -1981,18 +2285,22 @@ class Application {
         this.router.start();
         this.logDebugActivity("application", "start");
     }
+
     stop() {
         this.logDebugActivity("application", "stopping");
         this.dispatcher.stop();
         this.router.stop();
         this.logDebugActivity("application", "stop");
     }
+
     register(identifier, controllerConstructor) {
-        this.load({ identifier, controllerConstructor });
+        this.load({identifier, controllerConstructor});
     }
+
     registerActionOption(name, filter) {
         this.actionDescriptorFilters[name] = filter;
     }
+
     load(head, ...rest) {
         const definitions = Array.isArray(head) ? head : [head, ...rest];
         definitions.forEach((definition) => {
@@ -2001,35 +2309,40 @@ class Application {
             }
         });
     }
+
     unload(head, ...rest) {
         const identifiers = Array.isArray(head) ? head : [head, ...rest];
         identifiers.forEach((identifier) => this.router.unloadIdentifier(identifier));
     }
+
     get controllers() {
         return this.router.contexts.map((context) => context.controller);
     }
+
     getControllerForElementAndIdentifier(element, identifier) {
         const context = this.router.getContextForElementAndIdentifier(element, identifier);
         return context ? context.controller : null;
     }
+
     handleError(error, message, detail) {
         var _a;
         this.logger.error(`%s\n\n%o\n\n%o`, message, error, detail);
         (_a = window.onerror) === null || _a === void 0 ? void 0 : _a.call(window, message, "", 0, 0, error);
     }
+
     logFormattedMessage(identifier, functionName, detail = {}) {
-        detail = Object.assign({ application: this }, detail);
+        detail = Object.assign({application: this}, detail);
         this.logger.groupCollapsed(`${identifier} #${functionName}`);
         this.logger.log("details:", Object.assign({}, detail));
         this.logger.groupEnd();
     }
 }
+
 function domReady() {
     return new Promise((resolve) => {
         if (document.readyState == "loading") {
             document.addEventListener("DOMContentLoaded", () => resolve());
-        }
-        else {
+        } else {
             resolve();
         }
     });
@@ -2041,15 +2354,15 @@ function ClassPropertiesBlessing(constructor) {
         return Object.assign(properties, propertiesForClassDefinition(classDefinition));
     }, {});
 }
+
 function propertiesForClassDefinition(key) {
     return {
         [`${key}Class`]: {
             get() {
-                const { classes } = this;
+                const {classes} = this;
                 if (classes.has(key)) {
                     return classes.get(key);
-                }
-                else {
+                } else {
                     const attribute = classes.getAttributeName(key);
                     throw new Error(`Missing attribute "${attribute}"`);
                 }
@@ -2074,6 +2387,7 @@ function OutletPropertiesBlessing(constructor) {
         return Object.assign(properties, propertiesForOutletDefinition(outletDefinition));
     }, {});
 }
+
 function propertiesForOutletDefinition(name) {
     const camelizedName = namespaceCamelize(name);
     return {
@@ -2084,8 +2398,7 @@ function propertiesForOutletDefinition(name) {
                     const outletController = this.application.getControllerForElementAndIdentifier(outlet, name);
                     if (outletController) {
                         return outletController;
-                    }
-                    else {
+                    } else {
                         throw new Error(`Missing "data-controller=${name}" attribute on outlet element for "${this.identifier}" controller`);
                     }
                 }
@@ -2098,14 +2411,13 @@ function propertiesForOutletDefinition(name) {
                 if (outlets.length > 0) {
                     return outlets
                         .map((outlet) => {
-                        const controller = this.application.getControllerForElementAndIdentifier(outlet, name);
-                        if (controller) {
-                            return controller;
-                        }
-                        else {
-                            console.warn(`The provided outlet element is missing the outlet controller "${name}" for "${this.identifier}"`, outlet);
-                        }
-                    })
+                            const controller = this.application.getControllerForElementAndIdentifier(outlet, name);
+                            if (controller) {
+                                return controller;
+                            } else {
+                                console.warn(`The provided outlet element is missing the outlet controller "${name}" for "${this.identifier}"`, outlet);
+                            }
+                        })
                         .filter((controller) => controller);
                 }
                 return [];
@@ -2116,8 +2428,7 @@ function propertiesForOutletDefinition(name) {
                 const outlet = this.outlets.find(name);
                 if (outlet) {
                     return outlet;
-                }
-                else {
+                } else {
                     throw new Error(`Missing outlet element "${name}" for "${this.identifier}" controller`);
                 }
             },
@@ -2141,6 +2452,7 @@ function TargetPropertiesBlessing(constructor) {
         return Object.assign(properties, propertiesForTargetDefinition(targetDefinition));
     }, {});
 }
+
 function propertiesForTargetDefinition(name) {
     return {
         [`${name}Target`]: {
@@ -2148,8 +2460,7 @@ function propertiesForTargetDefinition(name) {
                 const target = this.targets.find(name);
                 if (target) {
                     return target;
-                }
-                else {
+                } else {
                     throw new Error(`Missing target element "${name}" for "${this.identifier}" controller`);
                 }
             },
@@ -2175,7 +2486,7 @@ function ValuePropertiesBlessing(constructor) {
                 return valueDefinitionPairs.reduce((result, valueDefinitionPair) => {
                     const valueDescriptor = parseValueDefinitionPair(valueDefinitionPair, this.identifier);
                     const attributeName = this.data.getAttributeNameForKey(valueDescriptor.key);
-                    return Object.assign(result, { [attributeName]: valueDescriptor });
+                    return Object.assign(result, {[attributeName]: valueDescriptor});
                 }, {});
             },
         },
@@ -2184,25 +2495,24 @@ function ValuePropertiesBlessing(constructor) {
         return Object.assign(properties, propertiesForValueDefinitionPair(valueDefinitionPair));
     }, propertyDescriptorMap);
 }
+
 function propertiesForValueDefinitionPair(valueDefinitionPair, controller) {
     const definition = parseValueDefinitionPair(valueDefinitionPair, controller);
-    const { key, name, reader: read, writer: write } = definition;
+    const {key, name, reader: read, writer: write} = definition;
     return {
         [name]: {
             get() {
                 const value = this.data.get(key);
                 if (value !== null) {
                     return read(value);
-                }
-                else {
+                } else {
                     return definition.defaultValue;
                 }
             },
             set(value) {
                 if (value === undefined) {
                     this.data.delete(key);
-                }
-                else {
+                } else {
                     this.data.set(key, write(value));
                 }
             },
@@ -2214,6 +2524,7 @@ function propertiesForValueDefinitionPair(valueDefinitionPair, controller) {
         },
     };
 }
+
 function parseValueDefinitionPair([token, typeDefinition], controller) {
     return valueDescriptorForTokenAndTypeDefinition({
         controller,
@@ -2221,6 +2532,7 @@ function parseValueDefinitionPair([token, typeDefinition], controller) {
         typeDefinition,
     });
 }
+
 function parseValueTypeConstant(constant) {
     switch (constant) {
         case Array:
@@ -2235,6 +2547,7 @@ function parseValueTypeConstant(constant) {
             return "string";
     }
 }
+
 function parseValueTypeDefault(defaultValue) {
     switch (typeof defaultValue) {
         case "boolean":
@@ -2249,6 +2562,7 @@ function parseValueTypeDefault(defaultValue) {
     if (Object.prototype.toString.call(defaultValue) === "[object Object]")
         return "object";
 }
+
 function parseValueTypeObject(payload) {
     const typeFromObject = parseValueTypeConstant(payload.typeObject.type);
     if (!typeFromObject)
@@ -2260,6 +2574,7 @@ function parseValueTypeObject(payload) {
     }
     return typeFromObject;
 }
+
 function parseValueTypeDefinition(payload) {
     const typeFromObject = parseValueTypeObject({
         controller: payload.controller,
@@ -2274,6 +2589,7 @@ function parseValueTypeDefinition(payload) {
     const propertyPath = payload.controller ? `${payload.controller}.${payload.typeDefinition}` : payload.token;
     throw new Error(`Unknown value type "${propertyPath}" for "${payload.token}" value`);
 }
+
 function defaultValueForDefinition(typeDefinition) {
     const constant = parseValueTypeConstant(typeDefinition);
     if (constant)
@@ -2283,6 +2599,7 @@ function defaultValueForDefinition(typeDefinition) {
         return defaultValue;
     return typeDefinition;
 }
+
 function valueDescriptorForTokenAndTypeDefinition(payload) {
     const key = `${dasherize(payload.token)}-value`;
     const type = parseValueTypeDefinition(payload);
@@ -2300,6 +2617,7 @@ function valueDescriptorForTokenAndTypeDefinition(payload) {
         writer: writers[type] || writers.default,
     };
 }
+
 const defaultValuesByType = {
     get array() {
         return [];
@@ -2341,9 +2659,11 @@ const writers = {
     array: writeJSON,
     object: writeJSON,
 };
+
 function writeJSON(value) {
     return JSON.stringify(value);
 }
+
 function writeString(value) {
     return `${value}`;
 }
@@ -2352,49 +2672,70 @@ class Controller {
     constructor(context) {
         this.context = context;
     }
+
     static get shouldLoad() {
         return true;
     }
+
     static afterLoad(_identifier, _application) {
-        return;
+
     }
+
     get application() {
         return this.context.application;
     }
+
     get scope() {
         return this.context.scope;
     }
+
     get element() {
         return this.scope.element;
     }
+
     get identifier() {
         return this.scope.identifier;
     }
+
     get targets() {
         return this.scope.targets;
     }
+
     get outlets() {
         return this.scope.outlets;
     }
+
     get classes() {
         return this.scope.classes;
     }
+
     get data() {
         return this.scope.data;
     }
+
     initialize() {
     }
+
     connect() {
     }
+
     disconnect() {
     }
-    dispatch(eventName, { target = this.element, detail = {}, prefix = this.identifier, bubbles = true, cancelable = true } = {}) {
+
+    dispatch(eventName, {
+        target = this.element,
+        detail = {},
+        prefix = this.identifier,
+        bubbles = true,
+        cancelable = true
+    } = {}) {
         const type = prefix ? `${prefix}:${eventName}` : eventName;
-        const event = new CustomEvent(type, { detail, bubbles, cancelable });
+        const event = new CustomEvent(type, {detail, bubbles, cancelable});
         target.dispatchEvent(event);
         return event;
     }
 }
+
 Controller.blessings = [
     ClassPropertiesBlessing,
     TargetPropertiesBlessing,
@@ -2405,4 +2746,21 @@ Controller.targets = [];
 Controller.outlets = [];
 Controller.values = {};
 
-export { Application, AttributeObserver, Context, Controller, ElementObserver, IndexedMultimap, Multimap, SelectorObserver, StringMapObserver, TokenListObserver, ValueListObserver, add, defaultSchema, del, fetch, prune };
+export {
+    Application,
+    AttributeObserver,
+    Context,
+    Controller,
+    ElementObserver,
+    IndexedMultimap,
+    Multimap,
+    SelectorObserver,
+    StringMapObserver,
+    TokenListObserver,
+    ValueListObserver,
+    add,
+    defaultSchema,
+    del,
+    fetch,
+    prune
+};

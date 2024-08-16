@@ -10,23 +10,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
-    
-    - name: Setup NuGet.exe for use with actions
-      uses: NuGet/setup-nuget@v1.1.1
-      with:
-        nuget-api-key: ${{secrets.NUGET_API_KEY}}
+      - uses: actions/checkout@v3
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v3
-      with:
-        dotnet-version: 7.0.x
-        
-    - name: Restore dependencies
-      run: dotnet restore mvdmio.Hotwire.NET
-      
-    - name: Build
-      run: dotnet build mvdmio.Hotwire.NET --no-restore
-          
-    - name: Push package
-      run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -NonInteractive -SkipDuplicate -Verbosity normal
+      - name: Setup NuGet.exe for use with actions
+        uses: NuGet/setup-nuget@v1.1.1
+        with:
+          nuget-api-key: ${{secrets.NUGET_API_KEY}}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore mvdmio.Hotwire.NET
+
+      - name: Build
+        run: dotnet build mvdmio.Hotwire.NET --no-restore
+
+      - name: Push package
+        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -NonInteractive -SkipDuplicate -Verbosity normal
