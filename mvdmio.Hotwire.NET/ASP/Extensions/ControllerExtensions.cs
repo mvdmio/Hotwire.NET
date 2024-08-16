@@ -30,11 +30,7 @@ public static class ControllerExtensions
    /// </summary>
    public static async Task<HtmlString> RenderView<TModel>(this Controller controller, string viewNamePath, TModel model)
    {
-      var viewData = new ViewDataDictionary<TModel>(controller.ViewData) {
-         Model = model
-      };
-
-      var viewResult = LoadView(controller, viewNamePath, viewData);
+      var viewResult = LoadView(controller, viewNamePath);
 
       if (viewResult.View is null)
          throw new InvalidOperationException("View is not loaded");
@@ -44,7 +40,9 @@ public static class ControllerExtensions
       var viewContext = new ViewContext(
          controller.ControllerContext,
          viewResult.View,
-         controller.ViewData,
+         new ViewDataDictionary<TModel>(controller.ViewData) {
+            Model = model
+         },
          controller.TempData,
          writer,
          new HtmlHelperOptions()
@@ -59,8 +57,7 @@ public static class ControllerExtensions
    /// </summary>
    public static async Task<HtmlString> RenderView(this Controller controller, string viewNamePath)
    {
-      var viewData = new ViewDataDictionary(controller.ViewData);
-      var viewResult = LoadView(controller, viewNamePath, viewData);
+      var viewResult = LoadView(controller, viewNamePath);
 
       if (viewResult.View is null)
          throw new InvalidOperationException("View is not loaded");
@@ -80,7 +77,7 @@ public static class ControllerExtensions
       return new HtmlString(writer.GetStringBuilder().ToString());
    }
 
-   private static ViewEngineResult LoadView(Controller controller, string viewNamePath, ViewDataDictionary viewDataDictionary)
+   private static ViewEngineResult LoadView(Controller controller, string viewNamePath)
    {
       var viewEngine = controller.HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
 
