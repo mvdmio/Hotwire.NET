@@ -87,13 +87,10 @@ public static class ControllerExtensions
       if (viewEngine is null)
          throw new InvalidOperationException("Could not load view engine from request.");
 
-      ViewEngineResult viewResult;
-
-      if (viewNamePath.EndsWith(".cshtml"))
-         viewResult = viewEngine.GetView(viewNamePath, viewNamePath, false);
-      else
-         viewResult = viewEngine.FindView(controller.ControllerContext, viewNamePath, false);
-
+      var viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false);
+      if (!viewResult.Success)
+         viewResult = viewEngine.FindView(controller.ControllerContext, viewNamePath, isMainPage: false);
+      
       if (!viewResult.Success)
          throw new InvalidOperationException($"A view with the name '{viewNamePath}' could not be found");
 
