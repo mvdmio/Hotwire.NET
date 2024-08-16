@@ -1,5 +1,5 @@
 ﻿@{
-   ViewData["Title"] = "Turbo Frame Example";
+   ViewData["Title"] = "Turbo Stream Example";
 }
 
 <div class="flex flex-col gap-4">
@@ -11,9 +11,7 @@
    </div>
 
    <div class="border border-2 border-dashed border-gray-900 min-h-8 p-4">
-      <turbo-frame id="content">
-         Turbo Frame Content that will be replaced.
-      </turbo-frame>
+      @await Html.PartialAsync("_Content", new DateTime())
    </div>
 
 </div>
