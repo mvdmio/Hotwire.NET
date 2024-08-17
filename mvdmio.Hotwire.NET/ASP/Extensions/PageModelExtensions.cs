@@ -40,9 +40,7 @@ public static class PageModelExtensions
       var viewContext = new ViewContext(
          pageModel.PageContext,
          viewResult.View,
-         new ViewDataDictionary<TModel>(pageModel.ViewData) {
-            Model = model
-         },
+         new ViewDataDictionary<TModel>(pageModel.ViewData, model),
          pageModel.TempData,
          writer,
          new HtmlHelperOptions()

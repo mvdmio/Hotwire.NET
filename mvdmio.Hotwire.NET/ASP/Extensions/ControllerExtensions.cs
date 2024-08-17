@@ -40,9 +40,7 @@ public static class ControllerExtensions
       var viewContext = new ViewContext(
          controller.ControllerContext,
          viewResult.View,
-         new ViewDataDictionary<TModel>(controller.ViewData) {
-            Model = model
-         },
+         new ViewDataDictionary<TModel>(controller.ViewData, model),
          controller.TempData,
          writer,
          new HtmlHelperOptions()
