@@ -1,0 +1,19 @@
+﻿@page "/example/turbo-frames"
+@model Index
+@{
+   ViewData["Title"] = "Turbo Stream Example";
+}
+
+<div class="flex flex-col gap-4">
+   <div>
+      <h1>Turbo Frame Example</h1>
+      <p>This page shows how to use turbo-frames. Click the button below to load some content in the frame.</p>
+
+      <a class="button primary" data-turbo-frame="content" href="example/turbo-frames/content">Click me!</a>
+   </div>
+
+   <div class="border border-2 border-dashed border-gray-900 min-h-8 p-4">
+      @await Html.PartialAsync("_Content", new DateTime())
+   </div>
+
+</div>

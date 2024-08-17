@@ -1,0 +1,25 @@
+﻿@page
+@model IndexModel
+@{
+   ViewData["Title"] = "Home page";
+}
+
+<div class="text-center">
+   <h1 class="text-4xl">Welcome</h1>
+   <p>
+      This is a demo application for learning how to work with
+      <a href="https://github.com/mvdmio/Hotwire.NET" target="_blank">mvdmio.Hotwire.NET</a>.
+   </p>
+   <p>
+      Hotwire Documentation:
+      <a class="link" href="https://hotwired.dev/" target="_blank">Hotwire</a>.
+   </p>
+</div>
+
+<div class="2xl:grid-cols-8 gap-4 grid grid-cols-3 lg:grid-cols-5 md:grid-cols-4 xl:grid-cols-6">
+   <a class="example-link link" href="/example/turbo-frames">Turbo Frames</a>
+</div>
+
+<div class="2xl:grid-cols-8 gap-4 grid grid-cols-3 lg:grid-cols-5 md:grid-cols-4 xl:grid-cols-6">
+   <a class="example-link link" href="/example/turbo-streams">Turbo Streams</a>
+</div>

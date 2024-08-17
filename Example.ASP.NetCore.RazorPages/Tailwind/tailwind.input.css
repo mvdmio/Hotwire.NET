@@ -1,0 +1,14 @@
+@import 'tailwindcss/base';
+@import 'base/reset.css';
+@import 'base/button.css';
+@import 'base/link.css';
+@import 'base/typography.css';
+
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer components {
+    .example-link {
+        @apply block bg-blue-300 hover:bg-blue-500;
+    }
+}
