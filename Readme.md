@@ -38,6 +38,36 @@ You can override the following properties in your project file (.csproj):
 </PropertyGroup>
 ```
 
+## Turbo Streams
+Turbo streams are supported for ASP.NET Core MVC and ASP.NET Core Razor Pages.
+
+You can return the `TurboStreamActionResult` by using the `TurboStream(...)` extension methods on your `Controller` or `PageModel`.
+The following actions are supported:
+- Append and AppendMultiple
+- Prepend and PrependMultiple
+- Replace and ReplaceMultiple
+- Update and UpdateMultiple
+- Remove and RemoveMultiple
+- Before and BeforeMultiple
+- After and AfterMultiple
+- Refresh
+
+### Example
+```csharp
+if (Request.IsTurboRequest())
+{
+    var renderedPartial = await this.RenderView("_Content", DateTime.Now);
+    return this.TurboStream(new ReplaceTurboAction("content", renderedPartial));
+}
+
+return Page();
+```
+
+### Documentation
+How to use: https://turbo.hotwired.dev/handbook/streams
+
+Reference: https://turbo.hotwired.dev/reference/streams
+
 # Contact
 
 For issues with the package, please create a new issue on GitHub. Pull requests are also welcome.
