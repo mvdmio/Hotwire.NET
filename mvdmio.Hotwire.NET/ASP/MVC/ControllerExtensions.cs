@@ -93,16 +93,15 @@ public static class ControllerExtensions
    /// <summary>
    /// Redirect back to the referer URL, with modifications.
    /// </summary>
-   public static IActionResult RedirectToReferer(this Controller controller, Action<Url> urlModificationAction)
+   public static IActionResult RedirectToReferer(this Controller controller, Func<Url, Url> urlModificationAction)
    {
       var referer = controller.Request.Referer();
 
       if(referer is null)
          throw new InvalidOperationException("No referer found.");
 
-      urlModificationAction.Invoke(referer.Value);
-
-      return new RedirectResult(referer.Value);
+      var modified = urlModificationAction.Invoke(referer.Value);
+      return new RedirectResult(modified);
    }
    
    private static ViewEngineResult LoadView(Controller controller, string viewNamePath)

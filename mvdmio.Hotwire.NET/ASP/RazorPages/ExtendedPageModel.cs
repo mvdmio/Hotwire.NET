@@ -51,7 +51,7 @@ public class ExtendedPageModel : PageModel
    /// <summary>
    /// Redirect back to the referer URL, with modifications.
    /// </summary>
-   protected IActionResult RedirectToReferer(Action<Url> urlModificationAction)
+   protected IActionResult RedirectToReferer(Func<Url, Url> urlModificationAction)
    {
       return PageModelExtensions.RedirectToReferer(this, urlModificationAction);
    }

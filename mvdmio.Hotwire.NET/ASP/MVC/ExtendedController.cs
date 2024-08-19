@@ -49,7 +49,7 @@ public abstract class ExtendedController : Controller
    /// <summary>
    /// Redirect back to the referer URL, with modifications.
    /// </summary>
-   protected IActionResult RedirectToReferer(Action<Url> urlModificationAction)
+   protected IActionResult RedirectToReferer(Func<Url, Url> urlModificationAction)
    {
       return ControllerExtensions.RedirectToReferer(this, urlModificationAction);
    }
