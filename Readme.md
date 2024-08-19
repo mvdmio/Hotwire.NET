@@ -53,14 +53,39 @@ The following actions are supported:
 - Refresh
 
 ### Example
+#### Using 'ExtendedController'
 ```csharp
-if (Request.IsTurboRequest())
+public class MyController : ExtendedController
 {
-    var renderedPartial = await this.RenderView("_Content", DateTime.Now);
-    return this.TurboStream(new ReplaceTurboAction("content", renderedPartial));
+    public async Task<IActionResult> Index()
+    {
+        if (Request.IsTurboRequest())
+        {
+            var renderedPartial = await RenderView("_Content", DateTime.Now);
+            return TurboStream(new ReplaceTurboAction("content", renderedPartial));
+        }
+        
+        return Page();
+    }
 }
+```
 
-return Page();
+#### Using Controller extension methods
+```csharp
+public class MyController : Controller
+{
+    public async Task<IActionResult> Index()
+    {
+        if (Request.IsTurboRequest())
+        {
+            // 'this' keyword required here; otherwise the compiler can't call extension methods.
+            var renderedPartial = await this.RenderView("_Content", DateTime.Now);
+            return this.TurboStream(new ReplaceTurboAction("content", renderedPartial));
+        }
+
+        return Page();
+    }
+}
 ```
 
 ### Documentation
