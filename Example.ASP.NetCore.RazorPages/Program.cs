@@ -1,6 +1,9 @@
+using mvdmio.Hotwire.NET.ASP.Extensions;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+builder.Services.AddTurboStreamsBroadcasting();
 builder.Services.AddRazorPages();
 
 var app = builder.Build();
@@ -16,6 +19,8 @@ if (!app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
+
+app.UseTurboStreamsBroadcasting();
 
 app.UseRouting();
 

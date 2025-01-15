@@ -93,6 +93,26 @@ How to use: https://turbo.hotwired.dev/handbook/streams
 
 Reference: https://turbo.hotwired.dev/reference/streams
 
+## Turbo Broadcasting
+Turbo broadcasting lets you send Turbo Streams to clients from the server. This is useful when you want to update clients
+when a certain event occurs.
+
+To start using broadcasting, make sure the following is added to your Program.cs:
+
+```csharp
+builder.Services.AddTurboBroadcasting();
+
+app.UseTurboBroadcasting();
+```
+
+This makes the ITurboBroadcaster interface available in your application. You can inject this interface in your services or controllers.
+The ITurboBroadcaster can be used to send Turbo Streams to clients.
+
+To create a broadcasting channel, you can use the following code in your HTML:
+```html
+<turbo-broadcast-channel name="channel-name" />
+```
+
 # Contact
 
 For issues with the package, please create a new issue on GitHub. Pull requests are also welcome.

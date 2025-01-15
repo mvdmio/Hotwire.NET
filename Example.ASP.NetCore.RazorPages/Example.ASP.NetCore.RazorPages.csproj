@@ -76,7 +76,12 @@
     </ItemGroup>
     
     <ItemGroup>
+      <Folder Include="Pages\TurboBroadcasts\" />
       <Folder Include="wwwroot\css\" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <ProjectReference Include="..\mvdmio.Hotwire.NET\mvdmio.Hotwire.NET.csproj" />
     </ItemGroup>
 
 </Project>
