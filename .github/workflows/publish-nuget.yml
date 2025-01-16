@@ -12,11 +12,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup NuGet.exe for use with actions
-        uses: nuget/setup-nuget@v2
-        with:
-          nuget-api-key: ${{secrets.NUGET_API_KEY}}
-          nuget-version: 'latest'
+#      - name: Setup NuGet.exe for use with actions
+#        uses: nuget/setup-nuget@v2
+#        with:
+#          nuget-api-key: ${{secrets.NUGET_API_KEY}}
+#          nuget-version: 'latest'
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
