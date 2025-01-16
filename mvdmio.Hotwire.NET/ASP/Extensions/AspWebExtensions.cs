@@ -2,9 +2,12 @@
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc.ApplicationParts;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
+using mvdmio.Hotwire.NET.ASP.Broadcasting.TagHelpers;
+using mvdmio.Hotwire.NET.ASP.ViewRendering;
 
 namespace mvdmio.Hotwire.NET.ASP.Extensions;
 
@@ -21,7 +24,10 @@ public static class AspWebExtensions
       var controllerAssembly = typeof(TurboStreamsWebsocketController).Assembly;
       services.AddControllers().PartManager.ApplicationParts.Add(new AssemblyPart(controllerAssembly));
 
+      services.AddSingleton<IViewRenderService, ViewRenderService>();
       services.AddSingleton<ITurboBroadcaster, InMemoryTurboBroadcaster>();
+      services.AddSingleton<IChannelEncryption, InMemoryChannelEncryption>();
+      services.AddTransient<ITagHelperComponent, TurboBroadcastChannelTagHelper>();
    }
    
    /// <summary>

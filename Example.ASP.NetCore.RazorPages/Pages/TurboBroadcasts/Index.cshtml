@@ -1,0 +1,17 @@
+﻿@page
+@model Example.ASP.NetCore.RazorPages.Pages.TurboBroadcasts.Index
+@{
+   ViewData["Title"] = "Turbo Broadcast Example";
+}
+
+<div class="flex flex-col gap-4">
+   <div>
+      <h1>Turbo Broadcast Example</h1>
+      <p>This page shows how to use turbo-broadcasts. The server continually sends broadcasts that update the content below.</p>
+   </div>
+
+   <div id="content" class="border border-2 border-dashed border-gray-900 min-h-8 p-4">
+      Content that will be replaced by the Turbo Broadcasts.
+   </div>
+
+</div>

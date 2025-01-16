@@ -1,4 +1,4 @@
-﻿namespace mvdmio.Hotwire.NET.ASP.Enums;
+﻿namespace mvdmio.Hotwire.NET.ASP.TurboActions.Enums;
 
 /// <summary>
 /// Replacement methods supported by Turbo.

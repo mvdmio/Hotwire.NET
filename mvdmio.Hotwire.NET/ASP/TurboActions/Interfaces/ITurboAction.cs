@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Microsoft.AspNetCore.Html;
 
-namespace mvdmio.Hotwire.NET.ASP.Interfaces;
+namespace mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 
 /// <summary>
 ///    Interface for turbo actions.

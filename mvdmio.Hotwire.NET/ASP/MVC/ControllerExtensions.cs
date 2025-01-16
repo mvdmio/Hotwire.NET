@@ -7,11 +7,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
-using mvdmio.Hotwire.NET.ASP.Extensions;
+using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.ASP.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
 
-namespace mvdmio.Hotwire.NET.ASP.MVC;
+namespace mvdmio.Hotwire.NET.ASP.Extensions;
 
 /// <summary>
 ///    Extensions for <see cref="Controller" />.

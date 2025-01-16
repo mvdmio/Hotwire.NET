@@ -76,7 +76,6 @@
     </ItemGroup>
     
     <ItemGroup>
-      <Folder Include="Pages\TurboBroadcasts\" />
       <Folder Include="wwwroot\css\" />
     </ItemGroup>
     

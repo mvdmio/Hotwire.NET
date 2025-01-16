@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
-using mvdmio.Hotwire.NET.ASP.Interfaces;
+using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 
 namespace mvdmio.Hotwire.NET.ASP.TurboActions;
 

@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Html;
-using mvdmio.Hotwire.NET.ASP.Enums;
 using mvdmio.Hotwire.NET.ASP.TurboActions;
 using Xunit;
 

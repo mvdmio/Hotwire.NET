@@ -1,3 +1,4 @@
+using Example.ASP.NetCore.RazorPages.Pages.TurboBroadcasts;
 using mvdmio.Hotwire.NET.ASP.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -5,6 +6,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddTurboStreamsBroadcasting();
 builder.Services.AddRazorPages();
+
+builder.Services.AddHostedService<BroadcastBackgroundTask>();
 
 var app = builder.Build();
 
