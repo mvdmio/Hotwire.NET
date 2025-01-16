@@ -4,8 +4,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using mvdmio.Hotwire.NET.ASP.Extensions;
-using mvdmio.Hotwire.NET.ASP.Interfaces;
+using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
 
 namespace mvdmio.Hotwire.NET.ASP.RazorPages;

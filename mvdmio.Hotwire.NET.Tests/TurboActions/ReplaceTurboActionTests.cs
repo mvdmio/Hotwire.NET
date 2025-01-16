@@ -1,6 +1,7 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Html;
 using mvdmio.Hotwire.NET.ASP.TurboActions;
+using mvdmio.Hotwire.NET.ASP.TurboActions.Enums;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.TurboActions;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using mvdmio.Hotwire.NET.ASP.Extensions;
+using mvdmio.Hotwire.NET.ASP.RazorPages;
 using mvdmio.Hotwire.NET.ASP.TurboActions;
 
 namespace Example.ASP.NetCore.RazorPages.Pages.TurboStreams;
