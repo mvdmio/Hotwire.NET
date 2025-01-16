@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04 #ubuntu-latest doesnt work at the moment, see: https://github.com/NuGet/setup-nuget/issues/168
+    runs-on: ubuntu-22.04 #ubuntu-latest doesnt work at the moment, see: https://github.com/NuGet/setup-nuget/issues/168
 
     steps:
       - uses: actions/checkout@v4
