@@ -24,7 +24,7 @@ public class BroadcastBackgroundTask : BackgroundService
       {
          var startTime = Stopwatch.GetTimestamp();
          
-         var view = await viewRenderService.RenderAsync("_Content", DateTime.Now);
+         var view = await viewRenderService.RenderAsync("Pages/TurboBroadcasts/_Content", DateTime.Now);
          var replaceTurboAction = new ReplaceTurboAction("content", view);
 
          await broadcaster.BroadcastAsync("broadcasts-example", replaceTurboAction, stoppingToken);

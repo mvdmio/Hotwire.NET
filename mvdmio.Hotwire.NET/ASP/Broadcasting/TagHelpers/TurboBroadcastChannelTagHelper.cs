@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Razor.TagHelpers;
+﻿using System;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Razor.TagHelpers;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 
 namespace mvdmio.Hotwire.NET.ASP.Broadcasting.TagHelpers;
@@ -9,29 +11,39 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting.TagHelpers;
 [HtmlTargetElement("turbo-broadcast-channel", TagStructure = TagStructure.NormalOrSelfClosing)]
 public class TurboBroadcastChannelTagHelper : TagHelper
 {
+   private readonly IHttpContextAccessor _httpContextAccessor;
    private readonly IChannelEncryption _channelEncryption;
 
    /// <summary>
    ///    The name of the channel to listen to.
    /// </summary>
    [HtmlAttributeName("name")]
-   public required string Name { get; set; }
+   public string? Name { get; set; }
 
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public TurboBroadcastChannelTagHelper(IChannelEncryption channelEncryption)
+   public TurboBroadcastChannelTagHelper(IHttpContextAccessor httpContextAccessor, IChannelEncryption channelEncryption)
    {
+      _httpContextAccessor = httpContextAccessor;
       _channelEncryption = channelEncryption;
    }
    
    /// <inheritdoc />
    public override void Process(TagHelperContext context, TagHelperOutput output)
    {
-      var signedChannelName = _channelEncryption.Encrypt(Name);
-      
       output.TagName = null;
       output.TagMode = TagMode.StartTagAndEndTag;
-      output.Content.SetHtmlContent($"<turbo-stream-source src=\"/turbo/ws/{signedChannelName}\"></turbo-stream-source>");
+
+      if (Name == null)
+         return;
+
+      var signedChannelName = _channelEncryption.Encrypt(Name);
+
+      var host = _httpContextAccessor.HttpContext?.Request.Host;
+      if (host is null)
+         throw new InvalidOperationException("Unable to get host from http context");
+
+      output.Content.SetHtmlContent($"<turbo-stream-source src=\"wss://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>");
    }
 }

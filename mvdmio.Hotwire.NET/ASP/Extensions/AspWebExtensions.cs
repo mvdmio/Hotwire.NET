@@ -21,12 +21,14 @@ public static class AspWebExtensions
    /// </summary>
    public static void AddTurboStreamsBroadcasting(this IServiceCollection services)
    {
-      var controllerAssembly = typeof(TurboStreamsWebsocketController).Assembly;
-      services.AddControllers().PartManager.ApplicationParts.Add(new AssemblyPart(controllerAssembly));
+      services.AddHttpContextAccessor();
 
-      services.AddSingleton<IViewRenderService, ViewRenderService>();
+      services.AddSingleton<TurboStreamsWebsocketMiddleware>();
       services.AddSingleton<ITurboBroadcaster, InMemoryTurboBroadcaster>();
       services.AddSingleton<IChannelEncryption, InMemoryChannelEncryption>();
+
+      services.AddScoped<IViewRenderService, ViewRenderService>();
+
       services.AddTransient<ITagHelperComponent, TurboBroadcastChannelTagHelper>();
    }
    
@@ -36,5 +38,6 @@ public static class AspWebExtensions
    public static void UseTurboStreamsBroadcasting(this WebApplication app)
    {
       app.UseWebSockets();
+      app.UseMiddleware<TurboStreamsWebsocketMiddleware>();
    }
 }

@@ -5,6 +5,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddTurboStreamsBroadcasting();
+builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
 builder.Services.AddHostedService<BroadcastBackgroundTask>();
@@ -24,7 +25,6 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseTurboStreamsBroadcasting();
-
 app.UseRouting();
 
 app.UseAuthorization();

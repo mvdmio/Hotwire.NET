@@ -1,8 +1,10 @@
-﻿@page
+﻿@page "/example/turbo-broadcasts"
 @model Example.ASP.NetCore.RazorPages.Pages.TurboBroadcasts.Index
 @{
    ViewData["Title"] = "Turbo Broadcast Example";
 }
+
+<turbo-broadcast-channel name="broadcasts-example" />
 
 <div class="flex flex-col gap-4">
    <div>

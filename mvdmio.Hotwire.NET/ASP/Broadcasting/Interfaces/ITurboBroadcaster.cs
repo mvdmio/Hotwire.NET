@@ -11,7 +11,7 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 /// </summary>
 public interface ITurboBroadcaster
 {
-   internal Task AddConnection(string channel, WebSocket webSocket);
+   internal Task AddConnection(string channel, WebSocket webSocket, TaskCompletionSource tcs);
    
    /// <summary>
    ///   Broadcasts a Turbo Action to a channel.
