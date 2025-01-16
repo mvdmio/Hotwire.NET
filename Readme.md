@@ -105,12 +105,19 @@ builder.Services.AddTurboBroadcasting();
 app.UseTurboBroadcasting();
 ```
 
-This makes the ITurboBroadcaster interface available in your application. You can inject this interface in your services or controllers.
-The ITurboBroadcaster can be used to send Turbo Streams to clients.
+And make sure you have included the mvdmio.Hotwire.NET tag helpers if you're using Razor Pages or MVC:
+```csharp
+@addTagHelper *, mvdmio.Hotwire.NET
+```
+
+This makes the ``ITurboBroadcaster`` interface available in your application. You can inject this interface in your services or controllers.
+The ``ITurboBroadcaster`` can be used to send Turbo Streams to channels.
 
 To create a broadcasting channel, you can use the following code in your HTML:
 ```html
 <turbo-broadcast-channel name="channel-name" />
+OR
+@Html.TurboBroadcastChannel("channel-name")
 ```
 
 # Contact

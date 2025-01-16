@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 
 namespace mvdmio.Hotwire.NET.ASP.Broadcasting.TagHelpers;
@@ -16,7 +17,9 @@ public static class TurboBroadcastChannelHtmlHelper
    {
       var channelEncryption = htmlHelper.ViewContext.HttpContext.RequestServices.GetRequiredService<IChannelEncryption>();
       var signedChannelName = channelEncryption.Encrypt(name);
-      
-      return $"<turbo-stream-source src=\"/turbo/ws/{signedChannelName}\"></turbo-stream-source>";
+
+      var host = htmlHelper.ViewContext.HttpContext.Request.Host;
+
+      return $"<turbo-stream-source src=\"wss://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>";
    }
 }
