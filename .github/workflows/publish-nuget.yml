@@ -10,17 +10,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup NuGet.exe for use with actions
-        uses: NuGet/setup-nuget@v1.1.1
+        uses: nuget/setup-nuget@v2
         with:
           nuget-api-key: ${{secrets.NUGET_API_KEY}}
+          nuget-version: 'latest'
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v3
+        uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 7.0.x
+          dotnet-version: 9
 
       - name: Restore dependencies
         run: dotnet restore mvdmio.Hotwire.NET
