@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using mvdmio.Hotwire.NET.ASP.Extensions;
+using mvdmio.Hotwire.NET.ASP.MVC;
 using mvdmio.Hotwire.NET.ASP.TurboActions;
 
 namespace Example.ASP.NetCore.MVC.Controllers;
