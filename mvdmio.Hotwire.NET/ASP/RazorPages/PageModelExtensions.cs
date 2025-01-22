@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
@@ -31,7 +33,7 @@ public static class PageModelExtensions
    /// <summary>
    ///    Render a partial view to string.
    /// </summary>
-   public static async Task<HtmlString> RenderView<TModel>(this PageModel pageModel, string viewNamePath, TModel model)
+   public static async Task<HtmlString> RenderView<TModel>(this PageModel pageModel, string viewNamePath, [DisallowNull] TModel model)
    {
       var viewResult = LoadView(pageModel, viewNamePath);
 
@@ -40,6 +42,7 @@ public static class PageModelExtensions
 
       await using var writer = new StringWriter();
 
+      // Create view context with the model.
       var viewContext = new ViewContext(
          pageModel.PageContext,
          viewResult.View,
@@ -49,6 +52,15 @@ public static class PageModelExtensions
          new HtmlHelperOptions()
       );
 
+      // Set ViewContext property value on the model, if it exists.
+      var properties = model.GetType().GetProperties();
+      foreach (var property in properties)
+      {
+         if(property.GetCustomAttribute<ViewContextAttribute>() is not null)
+            property.SetValue(model, viewContext);
+      }
+      
+      // Render the view.
       await viewResult.View.RenderAsync(viewContext);
       return new HtmlString(writer.GetStringBuilder().ToString());
    }
