@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
@@ -26,7 +27,7 @@ public class ExtendedPageModel : PageModel
    /// <summary>
    ///    Render a partial view to string.
    /// </summary>
-   protected async Task<HtmlString> RenderView<TModel>(string viewNamePath, TModel model)
+   protected async Task<HtmlString> RenderView<TModel>(string viewNamePath, [DisallowNull] TModel model)
    {
       return await PageModelExtensions.RenderView(this, viewNamePath, model);
    }

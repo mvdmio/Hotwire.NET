@@ -6,10 +6,13 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using Microsoft.AspNetCore.Mvc.Razor;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Extensions;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
@@ -43,10 +46,14 @@ public static class PageModelExtensions
       await using var writer = new StringWriter();
 
       // Create view context with the model.
+      var viewData = new ViewDataDictionary(new EmptyModelMetadataProvider(), new ModelStateDictionary()) {
+         Model = model
+      };
+
       var viewContext = new ViewContext(
          pageModel.PageContext,
          viewResult.View,
-         new ViewDataDictionary<TModel>(pageModel.ViewData, model),
+         viewData,
          pageModel.TempData,
          writer,
          new HtmlHelperOptions()
@@ -59,9 +66,10 @@ public static class PageModelExtensions
          if(property.GetCustomAttribute<ViewContextAttribute>() is not null)
             property.SetValue(model, viewContext);
       }
-      
+
       // Render the view.
       await viewResult.View.RenderAsync(viewContext);
+      
       return new HtmlString(writer.GetStringBuilder().ToString());
    }
 
@@ -77,10 +85,12 @@ public static class PageModelExtensions
 
       await using var writer = new StringWriter();
 
+      // Create view context with the model.
+      var viewData = new ViewDataDictionary(pageModel.ViewData);
       var viewContext = new ViewContext(
          pageModel.PageContext,
          viewResult.View,
-         pageModel.ViewData,
+         viewData,
          pageModel.TempData,
          writer,
          new HtmlHelperOptions()
@@ -119,12 +129,19 @@ public static class PageModelExtensions
 
    private static ViewEngineResult LoadView(PageModel pageModel, string viewNamePath)
    {
-      var viewEngine = pageModel.HttpContext.RequestServices.GetService(typeof(ICompositeViewEngine)) as ICompositeViewEngine;
+      var viewEngine = pageModel.HttpContext.RequestServices.GetRequiredService<IRazorViewEngine>();
 
       if (viewEngine is null)
          throw new InvalidOperationException("Could not load view engine from request.");
+   
+      var viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: true);
 
-      var viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false);
+      if(!viewResult.Success)
+         viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false);
+
+      if (!viewResult.Success)
+         viewResult = viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: true);
+      
       if (!viewResult.Success)
          viewResult = viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: false);
       
