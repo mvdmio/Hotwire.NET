@@ -11,17 +11,20 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 /// </summary>
 public interface ITurboBroadcaster
 {
-   internal Task AddConnection(string channel, WebSocket webSocket, TaskCompletionSource tcs);
+   /// <summary>
+   ///   Adds a connection to broadcast to. Normally handled by the library internally.
+   /// </summary>
+   Task AddConnection(string channel, WebSocket webSocket, TaskCompletionSource tcs);
    
    /// <summary>
    ///   Broadcasts a Turbo Action to a channel.
    /// </summary>
-   public Task BroadcastAsync(string channel, ITurboAction turboAction, CancellationToken ct = default);
+   Task BroadcastAsync(string channel, ITurboAction turboAction, CancellationToken ct = default);
    
    /// <summary>
    ///   Broadcast a <see cref="RefreshTurboAction"/> to the channel.
    /// </summary>
-   public async Task BroadcastRefreshAsync(string channel, CancellationToken ct = default)
+   async Task BroadcastRefreshAsync(string channel, CancellationToken ct = default)
    {
       await BroadcastAsync(channel, new RefreshTurboAction(), ct);
    }
