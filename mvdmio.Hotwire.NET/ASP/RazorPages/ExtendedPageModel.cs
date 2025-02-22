@@ -15,7 +15,7 @@ namespace mvdmio.Hotwire.NET.ASP.RazorPages;
 /// Extended base class for Page Models that contains Turbo-related methods.
 /// </summary>
 [PublicAPI]
-public class ExtendedPageModel : PageModel
+public abstract class ExtendedPageModel : PageModel
 {
    /// <summary>
    ///    Create a <see cref="TurboStreamActionResult" /> object that renders a turbo stream to the response.
