@@ -5,6 +5,7 @@ using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using mvdmio.Hotwire.NET.ASP.TurboActions;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
 
@@ -22,6 +23,14 @@ public class ExtendedPageModel : PageModel
    protected TurboStreamActionResult TurboStream(params ITurboAction[] actions)
    {
       return PageModelExtensions.TurboStream(this, actions);
+   }
+
+   /// <summary>
+   ///    Create a <see cref="TurboStreamActionResult" /> with a <see cref="RefreshTurboAction"/>.
+   /// </summary>
+   protected TurboStreamActionResult TurboStreamRefresh()
+   {
+      return PageModelExtensions.TurboStreamRefresh(this);
    }
    
    /// <summary>

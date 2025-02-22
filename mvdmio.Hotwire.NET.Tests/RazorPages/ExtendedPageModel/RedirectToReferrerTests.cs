@@ -1,6 +1,5 @@
 ﻿using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using mvdmio.Hotwire.NET.ASP.MVC;
 using mvdmio.Hotwire.NET.Tests._Stubs;
 using Xunit;
 

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 
 namespace mvdmio.Hotwire.NET.ASP.Broadcasting.TagHelpers;

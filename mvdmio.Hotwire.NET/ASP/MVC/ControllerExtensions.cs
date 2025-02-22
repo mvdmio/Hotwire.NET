@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using mvdmio.Hotwire.NET.ASP.Extensions;
+using mvdmio.Hotwire.NET.ASP.TurboActions;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
 
@@ -25,6 +26,14 @@ public static class ControllerExtensions
    public static TurboStreamActionResult TurboStream(this Controller controller, params ITurboAction[] actions)
    {
       return new TurboStreamActionResult(actions);
+   }
+   
+   /// <summary>
+   ///    Create a <see cref="TurboStreamActionResult" /> with a <see cref="RefreshTurboAction"/>.
+   /// </summary>
+   public static TurboStreamActionResult TurboStreamRefresh(this Controller pageModel)
+   {
+      return TurboStream(pageModel, new RefreshTurboAction());
    }
 
    /// <summary>

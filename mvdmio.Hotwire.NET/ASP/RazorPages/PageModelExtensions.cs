@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Mvc.ViewEngines;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Extensions;
+using mvdmio.Hotwire.NET.ASP.TurboActions;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
 
@@ -31,6 +32,14 @@ public static class PageModelExtensions
    public static TurboStreamActionResult TurboStream(this PageModel pageModel, params ITurboAction[] actions)
    {
       return new TurboStreamActionResult(actions);
+   }
+   
+   /// <summary>
+   ///    Create a <see cref="TurboStreamActionResult" /> with a <see cref="RefreshTurboAction"/>.
+   /// </summary>
+   public static TurboStreamActionResult TurboStreamRefresh(this PageModel pageModel)
+   {
+      return TurboStream(pageModel, new RefreshTurboAction());
    }
 
    /// <summary>

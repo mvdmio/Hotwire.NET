@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
 using Microsoft.AspNetCore.Mvc;
+using mvdmio.Hotwire.NET.ASP.TurboActions;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 using mvdmio.Hotwire.NET.Utilities;
 
@@ -20,6 +21,14 @@ public abstract class ExtendedController : Controller
    protected TurboStreamActionResult TurboStream(params ITurboAction[] actions)
    {
       return ControllerExtensions.TurboStream(this, actions);
+   }
+   
+   /// <summary>
+   ///    Create a <see cref="TurboStreamActionResult" /> with a <see cref="RefreshTurboAction"/>.
+   /// </summary>
+   protected TurboStreamActionResult TurboStreamRefresh()
+   {
+      return ControllerExtensions.TurboStreamRefresh(this);
    }
    
    /// <summary>
