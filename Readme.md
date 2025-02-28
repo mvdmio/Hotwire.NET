@@ -100,9 +100,9 @@ when a certain event occurs.
 To start using broadcasting, make sure the following is added to your Program.cs:
 
 ```csharp
-builder.Services.AddTurboBroadcasting();
+builder.Services.AddTurboStreamsBroadcasting();
 
-app.UseTurboBroadcasting();
+app.UseTurboStreamsBroadcasting();
 ```
 
 And make sure you have included the mvdmio.Hotwire.NET tag helpers if you're using Razor Pages or MVC:
