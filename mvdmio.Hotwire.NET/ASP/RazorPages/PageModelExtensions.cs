@@ -148,6 +148,12 @@ public static class PageModelExtensions
       if(!viewResult.Success)
          viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false);
 
+      if(!viewResult.Success)
+         viewResult = viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: true);
+      
+      if(!viewResult.Success)
+         viewResult = viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: false);
+      
       if (!viewResult.Success)
          viewResult = viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: true);
       
