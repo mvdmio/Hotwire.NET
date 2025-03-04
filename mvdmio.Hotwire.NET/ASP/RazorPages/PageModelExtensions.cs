@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -142,27 +144,27 @@ public static class PageModelExtensions
 
       if (viewEngine is null)
          throw new InvalidOperationException("Could not load view engine from request.");
-   
-      var viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: true);
 
-      if(!viewResult.Success)
-         viewResult = viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false);
+      List<Func<ViewEngineResult>> viewRetrievers = [
+         () => viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: true),
+         () => viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false),
+         () => viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: true),
+         () => viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: false),
+         () => viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: true),
+         () => viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: false)
+      ];
 
-      if(!viewResult.Success)
-         viewResult = viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: true);
-      
-      if(!viewResult.Success)
-         viewResult = viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: false);
-      
-      if (!viewResult.Success)
-         viewResult = viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: true);
-      
-      if (!viewResult.Success)
-         viewResult = viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: false);
-      
-      if (!viewResult.Success)
-         throw new InvalidOperationException($"A view with the name '{viewNamePath}' could not be found");
+      var searchedLocations = new List<string>();
+      foreach (var retriever in viewRetrievers)
+      {
+         var viewResult = retriever.Invoke();
 
-      return viewResult;
+         if (viewResult.Success)
+            return viewResult;
+         
+         searchedLocations.AddRange(viewResult.SearchedLocations);
+      }
+      
+      throw new InvalidOperationException($"A view with the name '{viewNamePath}' could not be found. Searched locations:\r\n{string.Join("\r\n", searchedLocations.Distinct())}");
    }
 }
