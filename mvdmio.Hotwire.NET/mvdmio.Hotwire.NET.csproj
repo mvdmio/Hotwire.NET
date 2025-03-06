@@ -1,43 +1,43 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <LangVersion>latest</LangVersion>
-        <ImplicitUsings>disable</ImplicitUsings>
-        <Nullable>enable</Nullable>
-        <DebugType>embedded</DebugType>
-        <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-        <GenerateDocumentationFile>True</GenerateDocumentationFile>
-        <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
-    </PropertyGroup>
+   <PropertyGroup>
+      <LangVersion>latest</LangVersion>
+      <ImplicitUsings>disable</ImplicitUsings>
+      <Nullable>enable</Nullable>
+      <DebugType>embedded</DebugType>
+      <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+      <GenerateDocumentationFile>True</GenerateDocumentationFile>
+      <TargetFrameworks>net8.0;net9.0</TargetFrameworks>
+   </PropertyGroup>
 
-	<PropertyGroup>
-		<Version>1.4.3</Version>
-		<Title>mvdmio.Hotwire.NET</Title>
-		<Description>Adds Hotwire Turbo and Stimulus to your .NET project.</Description>
-		<Company>mvdmio</Company>
-		<Authors>Michiel van der Meer</Authors>
-		<PackageReadmeFile>Readme.md</PackageReadmeFile>
-		<PackageLicenseFile>License.txt</PackageLicenseFile>
-	</PropertyGroup>
+   <PropertyGroup>
+      <Version>1.4.4</Version>
+      <Title>mvdmio.Hotwire.NET</Title>
+      <Description>Adds Hotwire Turbo and Stimulus to your .NET project.</Description>
+      <Company>mvdmio</Company>
+      <Authors>Michiel van der Meer</Authors>
+      <PackageReadmeFile>Readme.md</PackageReadmeFile>
+      <PackageLicenseFile>License.txt</PackageLicenseFile>
+   </PropertyGroup>
 
-    <ItemGroup>
-        <FrameworkReference Include="Microsoft.AspNetCore.App"/>
-    </ItemGroup>
+   <ItemGroup>
+      <FrameworkReference Include="Microsoft.AspNetCore.App" />
+   </ItemGroup>
 
-    <ItemGroup>
-        <None Include="..\License.txt" PackagePath="" Pack="true"/>
-        <None Include="..\Readme.md" PackagePath="" Pack="true"/>
-    </ItemGroup>
+   <ItemGroup>
+      <None Include="..\License.txt" PackagePath="" Pack="true" />
+      <None Include="..\Readme.md" PackagePath="" Pack="true" />
+   </ItemGroup>
 
-    <ItemGroup>
-        <None Include="node_modules\@hotwired\stimulus\dist\stimulus.js" PackagePath="lib\stimulus.js" Pack="true"/>
-        <None Include="node_modules\@hotwired\turbo\dist\turbo.es2017-esm.js" PackagePath="lib\turbo.js" Pack="true"/>
+   <ItemGroup>
+      <None Include="node_modules\@hotwired\stimulus\dist\stimulus.js" PackagePath="lib\stimulus.js" Pack="true" />
+      <None Include="node_modules\@hotwired\turbo\dist\turbo.es2017-esm.js" PackagePath="lib\turbo.js" Pack="true" />
 
-        <None Include="build\*" PackagePath="build" Pack="true"/>
-    </ItemGroup>
+      <None Include="build\*" PackagePath="build" Pack="true" />
+   </ItemGroup>
 
-    <ItemGroup>
-        <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
-    </ItemGroup>
+   <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2024.3.0" />
+   </ItemGroup>
 
 </Project>
