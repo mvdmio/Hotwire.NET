@@ -35,6 +35,8 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
          return;
       }
 
+      _logger.LogDebug("Received websocket connection request");
+
       try
       {
          if (!context.Request.Path.StartsWithSegments("/turbo/ws"))
@@ -47,7 +49,7 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
          var signedChannelName = context.Request.Path.Value?.Substring("/turbo/ws/".Length);
          if (string.IsNullOrWhiteSpace(signedChannelName))
          {
-            _logger.LogWarning("Received websocket connection request without signature.");
+            _logger.LogWarning("Received websocket connection request without channel name");
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
             return;
          }
@@ -66,7 +68,7 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
          }
          catch (ArgumentException) // Thrown by the channel encryption when signature is not valid.
          {
-            _logger.LogWarning("Received websocket connection request with invalid signature.");
+            _logger.LogWarning("Received websocket connection request with invalid signature");
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
          }
       }
