@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 
@@ -15,13 +16,15 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 /// </summary>
 public class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
 {
+   private readonly ILogger<InMemoryTurboBroadcaster> _logger;
    private readonly IList<(string channel, WebSocket socket, TaskCompletionSource tcs)> _connections;
 
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public InMemoryTurboBroadcaster()
+   public InMemoryTurboBroadcaster(ILogger<InMemoryTurboBroadcaster> logger)
    {
+      _logger = logger;
       _connections = new List<(string channel, WebSocket socket, TaskCompletionSource tcs)>();
    }
 
@@ -50,6 +53,8 @@ public class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
 
       foreach (var connection in _connections)
       {
+         _logger.LogDebug("Closing websocket connection: {ChannelName}", connection.channel);
+
          connection.tcs.TrySetResult(); // This closes the websocket connection.
          connection.socket.Dispose();
       }
