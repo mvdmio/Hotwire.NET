@@ -19,10 +19,9 @@ public static class TurboBroadcastChannelHtmlHelper
    {
       var channelEncryption = htmlHelper.ViewContext.HttpContext.RequestServices.GetRequiredService<IChannelEncryption>();
       var signedChannelName = channelEncryption.Encrypt(name);
-      var encodedSignedChannelName = WebUtility.HtmlEncode(signedChannelName);
-
+      
       var host = htmlHelper.ViewContext.HttpContext.Request.Host;
 
-      return $"<turbo-stream-source src=\"wss://{host}/turbo/ws/{encodedSignedChannelName}\"></turbo-stream-source>";
+      return $"<turbo-stream-source src=\"wss://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>";
    }
 }

@@ -2,6 +2,7 @@
 using System.Security.Cryptography;
 using System.Text;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
+using mvdmio.Hotwire.NET.Utilities;
 
 namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 
@@ -33,7 +34,7 @@ public class RsaChannelEncryption : IChannelEncryption, IDisposable
       var data = Encoding.UTF8.GetBytes(channelName);
       var hash = _algorithm.ComputeHash(data);
       var signatureBytes = _rsaFormatter.CreateSignature(hash);
-      var signature = Convert.ToBase64String(signatureBytes);
+      var signature = Base64Url.Encode(signatureBytes);
 
       return $"{channelName}.{signature}";
    }
@@ -49,7 +50,7 @@ public class RsaChannelEncryption : IChannelEncryption, IDisposable
       var signature = parts[1];
       var data = Encoding.UTF8.GetBytes(channelName);
       var hash = _algorithm.ComputeHash(data);
-      var signatureBytes = Convert.FromBase64String(signature);
+      var signatureBytes = Base64Url.Decode(signature);
       var isValid = _rsa.VerifyHash(hash, signatureBytes, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
 
       if (!isValid)

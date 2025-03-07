@@ -47,8 +47,7 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
          }
 
          var signedChannelName = context.Request.Path.Value?.Substring("/turbo/ws/".Length);
-         var decodedSignedChannelName = WebUtility.HtmlDecode(signedChannelName);
-         if (string.IsNullOrWhiteSpace(decodedSignedChannelName))
+         if (string.IsNullOrWhiteSpace(signedChannelName))
          {
             _logger.LogWarning("Received websocket connection request without channel name");
             context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -57,7 +56,7 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
 
          try
          {
-            var channelName = _channelEncryption.Decrypt(decodedSignedChannelName);
+            var channelName = _channelEncryption.Decrypt(signedChannelName);
 
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             var tcs = new TaskCompletionSource();
