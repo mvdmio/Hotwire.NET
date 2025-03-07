@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using System.Net;
+using JetBrains.Annotations;
+using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 
@@ -7,6 +9,7 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting.TagHelpers;
 /// <summary>
 ///   HTML Helper for creating Turbo Broadcasting channels.
 /// </summary>
+[PublicAPI]
 public static class TurboBroadcastChannelHtmlHelper
 {
    /// <summary>
@@ -16,9 +19,10 @@ public static class TurboBroadcastChannelHtmlHelper
    {
       var channelEncryption = htmlHelper.ViewContext.HttpContext.RequestServices.GetRequiredService<IChannelEncryption>();
       var signedChannelName = channelEncryption.Encrypt(name);
+      var encodedSignedChannelName = WebUtility.HtmlEncode(signedChannelName);
 
       var host = htmlHelper.ViewContext.HttpContext.Request.Host;
 
-      return $"<turbo-stream-source src=\"wss://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>";
+      return $"<turbo-stream-source src=\"wss://{host}/turbo/ws/{encodedSignedChannelName}\"></turbo-stream-source>";
    }
 }

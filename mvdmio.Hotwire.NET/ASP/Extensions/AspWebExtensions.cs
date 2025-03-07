@@ -22,7 +22,7 @@ public static class AspWebExtensions
 
       services.AddScoped<TurboStreamsWebsocketMiddleware>(); // Should be scoped so that each websocket connection has its own instance. The middleware blocks until the application is shut down or the client closes the connection.
       services.AddSingleton<ITurboBroadcaster, InMemoryTurboBroadcaster>();
-      services.AddSingleton<IChannelEncryption, InMemoryChannelEncryption>();
+      services.AddSingleton<IChannelEncryption, RsaChannelEncryption>();
 
       services.AddScoped<IViewRenderService, ViewRenderService>();
 

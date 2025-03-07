@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
@@ -39,11 +40,12 @@ public class TurboBroadcastChannelTagHelper : TagHelper
          return;
 
       var signedChannelName = _channelEncryption.Encrypt(Name);
+      var encodedSignedChannelName = WebUtility.HtmlEncode(signedChannelName);
 
       var host = _httpContextAccessor.HttpContext?.Request.Host;
       if (host is null)
          throw new InvalidOperationException("Unable to get host from http context");
 
-      output.Content.SetHtmlContent($"<turbo-stream-source src=\"wss://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>");
+      output.Content.SetHtmlContent($"<turbo-stream-source src=\"wss://{host}/turbo/ws/{encodedSignedChannelName}\"></turbo-stream-source>");
    }
 }

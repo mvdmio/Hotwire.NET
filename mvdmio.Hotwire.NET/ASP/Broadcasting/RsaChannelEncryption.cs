@@ -9,7 +9,7 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 ///   In-memory implementation of channel encryption.
 ///   This implementation recycles the encryption key-pair every time the application is restarted.
 /// </summary>
-public class InMemoryChannelEncryption : IChannelEncryption, IDisposable
+public class RsaChannelEncryption : IChannelEncryption, IDisposable
 {
    private readonly SHA512 _algorithm;
    private readonly RSA _rsa;
@@ -18,7 +18,7 @@ public class InMemoryChannelEncryption : IChannelEncryption, IDisposable
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public InMemoryChannelEncryption()
+   public RsaChannelEncryption()
    {
       _algorithm = SHA512.Create();
       _rsa = RSA.Create();
