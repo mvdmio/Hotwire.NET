@@ -20,8 +20,9 @@ public static class TurboBroadcastChannelHtmlHelper
       var channelEncryption = htmlHelper.ViewContext.HttpContext.RequestServices.GetRequiredService<IChannelEncryption>();
       var signedChannelName = channelEncryption.Encrypt(name);
       
-      var host = htmlHelper.ViewContext.HttpContext.Request.Host;
-
-      return $"<turbo-stream-source src=\"wss://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>";
+      var httpContext = htmlHelper.ViewContext.HttpContext;
+      var host = httpContext.Request.Host;
+      var protocol = httpContext.Request.IsHttps ? "wss" : "ws";
+      return $"<turbo-stream-source src=\"{protocol}://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>";
    }
 }
