@@ -1,11 +1,11 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <Target Name="CopyHotwireContent" BeforeTargets="CoreCompile" Condition="'$(HotwireCopyDefaultFiles)' == 'true'">
-        <Message Text="Copying Hotwire files if they don't exist yet." Importance="high"/>
-        <Message Text="  Turbo: $(HotwireTurboJsPath)" Importance="high"/>
-        <Message Text="  Stimulus: $(HotwireStimulusJsPath)" Importance="high"/>
+        <Message Text="Copying Turbo and Stimulus JS files"        Importance="high"/>
+        <Message Text="  Turbo: $(HotwireTurboJsPath)"             Importance="high"/>
+        <Message Text="  Stimulus: $(HotwireStimulusJsPath)"       Importance="high"/>
         <Message Text="  Destination: $(HotwireCopyBaseDirectory)" Importance="high"/>
 
-        <Copy SourceFiles="$(HotwireTurboJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$(HotwireCopyBaseDirectory)\turbo.js')"/>
-        <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" Condition="!Exists('$(HotwireCopyBaseDirectory)\stimulus.js')"/>
+        <Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" />
+        <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" />
     </Target>
 </Project>
