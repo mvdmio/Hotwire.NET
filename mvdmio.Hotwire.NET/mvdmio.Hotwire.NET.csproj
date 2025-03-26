@@ -11,7 +11,7 @@
    </PropertyGroup>
 
    <PropertyGroup>
-      <Version>1.5.0</Version>
+      <Version>1.5.1</Version>
       <Title>mvdmio.Hotwire.NET</Title>
       <Description>Adds Hotwire Turbo and Stimulus to your .NET project.</Description>
       <Company>mvdmio</Company>

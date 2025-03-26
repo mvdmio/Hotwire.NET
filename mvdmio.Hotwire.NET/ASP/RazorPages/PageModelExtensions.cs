@@ -146,11 +146,8 @@ public static class PageModelExtensions
          throw new InvalidOperationException("Could not load view engine from request.");
 
       List<Func<ViewEngineResult>> viewRetrievers = [
-         () => viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: true),
          () => viewEngine.GetView(executingFilePath: null, viewPath: viewNamePath, isMainPage: false),
-         () => viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: true),
          () => viewEngine.GetView(executingFilePath: pageModel.PageContext.ActionDescriptor.ViewEnginePath, viewPath: viewNamePath, isMainPage: false),
-         () => viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: true),
          () => viewEngine.FindView(pageModel.PageContext, viewNamePath, isMainPage: false)
       ];
 
