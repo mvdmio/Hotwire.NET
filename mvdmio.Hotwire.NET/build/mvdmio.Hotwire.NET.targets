@@ -5,7 +5,7 @@
         <Message Text="  Stimulus: $(HotwireStimulusJsPath)"       Importance="high"/>
         <Message Text="  Destination: $(HotwireCopyBaseDirectory)" Importance="high"/>
 
-        <Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" />
-        <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" />
+        <Copy SourceFiles="$(HotwireTurboJsPath)"    DestinationFolder="$(HotwireCopyBaseDirectory)" SkipUnchangedFiles="true" />
+        <Copy SourceFiles="$(HotwireStimulusJsPath)" DestinationFolder="$(HotwireCopyBaseDirectory)" SkipUnchangedFiles="true" />
     </Target>
 </Project>
