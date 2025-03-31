@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Net;
+using System.Net.WebSockets;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 
@@ -14,15 +17,17 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
 {
    private readonly ITurboBroadcaster _broadcaster;
    private readonly IChannelEncryption _channelEncryption;
+   private readonly IHostApplicationLifetime _applicationLifetime;
    private readonly ILogger<TurboStreamsWebsocketMiddleware> _logger;
-
+   
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public TurboStreamsWebsocketMiddleware(ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
+   public TurboStreamsWebsocketMiddleware(ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, IHostApplicationLifetime applicationLifetime, ILogger<TurboStreamsWebsocketMiddleware> logger)
    {
       _broadcaster = broadcaster;
       _channelEncryption = channelEncryption;
+      _applicationLifetime = applicationLifetime;
       _logger = logger;
    }
 
@@ -58,10 +63,19 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
          {
             var channelName = _channelEncryption.Decrypt(signedChannelName);
 
-            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
             var tcs = new TaskCompletionSource();
+            var webSocket = await context.WebSockets.AcceptWebSocketAsync();
+
             await _broadcaster.AddConnection(channelName, webSocket, tcs);
 
+            // Make sure the task is cancelled when the application shuts down.
+            _applicationLifetime.ApplicationStopping.Register(
+               async () => {
+                  await webSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Application shutting down", context.RequestAborted);
+                  tcs.TrySetCanceled(_applicationLifetime.ApplicationStopping);
+               }
+            );
+            
             _logger.LogInformation("Accepted websocket connection for channel {ChannelName}", channelName);
 
             await tcs.Task; // Block until the application shuts down or the client closes the connection.

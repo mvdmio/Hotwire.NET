@@ -14,7 +14,7 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 /// <summary>
 ///   Implements the Turbo Streams broadcaster with an in-memory storage of connections.
 /// </summary>
-public class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
+public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
 {
    private readonly ILogger<InMemoryTurboBroadcaster> _logger;
    private readonly IList<(string channel, WebSocket socket, TaskCompletionSource tcs)> _connections;
@@ -49,8 +49,6 @@ public class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
    /// <inheritdoc />
    public void Dispose()
    {
-      GC.SuppressFinalize(this);
-
       foreach (var connection in _connections)
       {
          _logger.LogDebug("Closing websocket connection: {ChannelName}", connection.channel);
