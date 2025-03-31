@@ -10,33 +10,35 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 ///   In-memory implementation of channel encryption.
 ///   This implementation recycles the encryption key-pair every time the application is restarted.
 /// </summary>
-public class RsaChannelEncryption : IChannelEncryption, IDisposable
+public sealed class RsaChannelEncryption : IChannelEncryption, IDisposable
 {
-   private readonly SHA512 _algorithm;
+   // RSA SignHash is NOT thread-safe. You must lock around it.
+   // You mush also use the same instance of RSA for both signing and verifying, otherwise the signature will not match.
+   
+   private readonly object _lock = new();
    private readonly RSA _rsa;
-   private readonly RSAPKCS1SignatureFormatter _rsaFormatter;
    
    /// <summary>
    ///   Constructor.
    /// </summary>
    public RsaChannelEncryption()
    {
-      _algorithm = SHA512.Create();
       _rsa = RSA.Create();
-      
-      _rsaFormatter = new RSAPKCS1SignatureFormatter(_rsa);
-      _rsaFormatter.SetHashAlgorithm(nameof(SHA512));
    }
    
    /// <inheritdoc />
    public string Encrypt(string channelName)
    {
-      var data = Encoding.UTF8.GetBytes(channelName);
-      var hash = _algorithm.ComputeHash(data);
-      var signatureBytes = _rsaFormatter.CreateSignature(hash);
-      var signature = Base64Url.Encode(signatureBytes);
+      lock (_lock)
+      {
+         var data = Encoding.UTF8.GetBytes(channelName);
+         var hash = SHA512.HashData(data);
+         var signatureBytes = _rsa.SignHash(hash, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
+      
+         var signature = Base64Url.Encode(signatureBytes);
 
-      return $"{channelName}.{signature}";
+         return $"{channelName}.{signature}";   
+      }
    }
 
    /// <inheritdoc />
@@ -49,8 +51,11 @@ public class RsaChannelEncryption : IChannelEncryption, IDisposable
       var channelName = parts[0];
       var signature = parts[1];
       var data = Encoding.UTF8.GetBytes(channelName);
-      var hash = _algorithm.ComputeHash(data);
+      
+      var hash = SHA512.HashData(data);
       var signatureBytes = Base64Url.Decode(signature);
+      
+      // ReSharper disable once InconsistentlySynchronizedField -- VerifyHash is thread-safe, SignHash is not
       var isValid = _rsa.VerifyHash(hash, signatureBytes, HashAlgorithmName.SHA512, RSASignaturePadding.Pkcs1);
 
       if (!isValid)
@@ -63,6 +68,5 @@ public class RsaChannelEncryption : IChannelEncryption, IDisposable
    public void Dispose()
    {
       _rsa.Dispose();
-      _algorithm.Dispose();
    }
 }
