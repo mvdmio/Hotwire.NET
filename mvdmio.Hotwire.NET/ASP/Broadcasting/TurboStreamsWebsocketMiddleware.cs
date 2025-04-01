@@ -71,8 +71,15 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
             // Make sure the task is cancelled when the application shuts down.
             _applicationLifetime.ApplicationStopping.Register(
                async () => {
-                  await webSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Application shutting down", context.RequestAborted);
-                  tcs.TrySetCanceled(_applicationLifetime.ApplicationStopping);
+                  try
+                  {
+                     await webSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Application shutting down", CancellationToken.None);
+                     tcs.TrySetCanceled();
+                  }
+                  catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) 
+                  {
+                     // Ignore the exception, it is expected when the application is shutting down.
+                  }
                }
             );
             
