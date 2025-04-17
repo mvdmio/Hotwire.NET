@@ -63,23 +63,30 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
          {
             var channelName = _channelEncryption.Decrypt(signedChannelName);
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
-            
+
             var tcs = new TaskCompletionSource();
             await _broadcaster.AddConnection(channelName, webSocket, tcs);
 
             _logger.LogInformation("Accepted websocket connection for channel {ChannelName}", channelName);
 
             // Make sure the task is cancelled when the application shuts down.
-            _applicationLifetime.ApplicationStopping.Register(() => { tcs.TrySetCanceled(); });
-            
+            _applicationLifetime.ApplicationStopping.Register(() => {
+                  tcs.TrySetCanceled();
+               }
+            );
+
             await tcs.Task; // Block until the application shuts down or the client closes the connection.
-            
-            if(webSocket.State == WebSocketState.Open)
+
+            if (webSocket.State == WebSocketState.Open)
                await webSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Application shutting down", CancellationToken.None);
          }
-         catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) 
+         catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException)
          {
             // Ignore the exception, it is expected when the application is shutting down.
+         }
+         catch (WebSocketException)
+         {
+            // Thrown when the client closes the connection without completing the close handshake.
          }
          catch (ArgumentException) // Thrown by the channel encryption when signature is not valid.
          {
