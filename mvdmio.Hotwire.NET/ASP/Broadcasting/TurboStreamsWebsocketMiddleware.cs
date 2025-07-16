@@ -4,7 +4,6 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 
@@ -13,21 +12,21 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 /// <summary>
 ///   Middleware for accepting Turbo Streams websocket connections.
 /// </summary>
-public class TurboStreamsWebsocketMiddleware : IMiddleware
+public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
 {
+   private readonly CancellationTokenSource _shutdownCts = new();
+   
    private readonly ITurboBroadcaster _broadcaster;
    private readonly IChannelEncryption _channelEncryption;
-   private readonly IHostApplicationLifetime _applicationLifetime;
    private readonly ILogger<TurboStreamsWebsocketMiddleware> _logger;
    
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public TurboStreamsWebsocketMiddleware(ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, IHostApplicationLifetime applicationLifetime, ILogger<TurboStreamsWebsocketMiddleware> logger)
+   public TurboStreamsWebsocketMiddleware(ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
    {
       _broadcaster = broadcaster;
       _channelEncryption = channelEncryption;
-      _applicationLifetime = applicationLifetime;
       _logger = logger;
    }
 
@@ -66,24 +65,10 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
             var tcs = new TaskCompletionSource();
             var webSocket = await context.WebSockets.AcceptWebSocketAsync();
 
-            await _broadcaster.AddConnection(channelName, webSocket, tcs);
-
-            // Make sure the task is cancelled when the application shuts down.
-            _applicationLifetime.ApplicationStopping.Register(
-               async () => {
-                  try
-                  {
-                     await webSocket.CloseAsync(WebSocketCloseStatus.EndpointUnavailable, "Application shutting down", CancellationToken.None);
-                     tcs.TrySetCanceled();
-                  }
-                  catch (Exception ex) when (ex is TaskCanceledException or OperationCanceledException) 
-                  {
-                     // Ignore the exception, it is expected when the application is shutting down.
-                  }
-               }
-            );
+            var connectionId = await _broadcaster.AddConnection(channelName, webSocket);
+            _ = HandleConnectionAsync(connectionId, channelName, webSocket, tcs);
             
-            _logger.LogInformation("Accepted websocket connection for channel {ChannelName}", channelName);
+            _logger.LogInformation("Accepted websocket connection {Id} for channel {ChannelName}", connectionId, channelName);
 
             await tcs.Task; // Block until the application shuts down or the client closes the connection.
          }
@@ -97,5 +82,44 @@ public class TurboStreamsWebsocketMiddleware : IMiddleware
       {
          _logger.LogError(ex, "Error in TurboStreamsWebsocketMiddleware");
       }
+   }
+   
+   private async Task HandleConnectionAsync(Guid connectionId, string channel, WebSocket webSocket, TaskCompletionSource tcs)
+   {
+      var buffer = new byte[4096]; // For receive; size doesn't matter if ignoring data
+      try
+      {
+         while (webSocket.State == WebSocketState.Open && !_shutdownCts.IsCancellationRequested)
+         {
+            var result = await webSocket.ReceiveAsync(buffer, _shutdownCts.Token);
+            if (result.MessageType == WebSocketMessageType.Close)
+            {
+               _logger.LogInformation("Client closed WebSocket {Id} for channel {Channel}", connectionId, channel);
+               break;
+            }
+            // Ignore any received data (or handle if needed, e.g., protocol messages)
+         }
+      }
+      catch (OperationCanceledException) { } // Shutdown
+      catch (WebSocketException ex)
+      {
+         _logger.LogWarning(ex, "WebSocket {Id} error for channel {Channel}", connectionId, channel);
+      }
+      finally
+      {
+         await _broadcaster.RemoveConnection(connectionId);
+         if (webSocket.State != WebSocketState.Closed && webSocket.State != WebSocketState.Aborted)
+         {
+            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed", CancellationToken.None);
+         }
+         webSocket.Dispose();
+         tcs.TrySetResult(); // Unblock middleware
+      }
+   }
+
+   /// <inheritdoc />
+   public void Dispose()
+   {
+      _shutdownCts.Cancel();
    }
 }

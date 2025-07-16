@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
@@ -14,10 +15,10 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 /// <summary>
 ///   Implements the Turbo Streams broadcaster with an in-memory storage of connections.
 /// </summary>
-public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
+public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
 {
    private readonly ILogger<InMemoryTurboBroadcaster> _logger;
-   private readonly IList<(string channel, WebSocket socket, TaskCompletionSource tcs)> _connections;
+   private readonly ConcurrentDictionary<Guid, (string channel, WebSocket socket)> _connections;
 
    /// <summary>
    ///   Constructor.
@@ -25,36 +26,37 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster, IDisposable
    public InMemoryTurboBroadcaster(ILogger<InMemoryTurboBroadcaster> logger)
    {
       _logger = logger;
-      _connections = new List<(string channel, WebSocket socket, TaskCompletionSource tcs)>();
+      _connections = new ConcurrentDictionary<Guid, (string channel, WebSocket socket)>();
    }
 
    /// <inheritdoc />
-   public Task AddConnection(string channel, WebSocket webSocket, TaskCompletionSource tcs)
+   public Task<Guid> AddConnection(string channel, WebSocket webSocket)
    {
-      _connections.Add((channel, webSocket, tcs));
+      var connectionId = Guid.NewGuid();
+
+      if (_connections.TryAdd(connectionId, (channel, webSocket)))
+         return Task.FromResult(connectionId);
+
+      throw new InvalidOperationException("Failed to add connection to the broadcaster. This should not happen.");
+   }
+
+   /// <inheritdoc />
+   public Task RemoveConnection(Guid connectionId)
+   {
+      if(!_connections.TryRemove(connectionId, out _))
+         throw new InvalidOperationException("Failed to remove connection from the broadcaster. This should not happen.");
+
       return Task.CompletedTask;
    }
 
    /// <inheritdoc />
    public async Task BroadcastAsync(string channel, ITurboAction turboAction, CancellationToken ct = default)
    {
-      var sockets = _connections.Where(x => x.channel == channel).Select(x => x.socket);
+      var sockets = _connections.Where(x => x.Value.channel == channel).Select(x => x.Value.socket);
       var message = await turboAction.Render();
       var buffer = Encoding.UTF8.GetBytes(message.Value!);
-      
-      foreach (var socket in sockets)         
-         await socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct);
-   }
 
-   /// <inheritdoc />
-   public void Dispose()
-   {
-      foreach (var connection in _connections)
-      {
-         _logger.LogDebug("Closing websocket connection: {ChannelName}", connection.channel);
-
-         connection.tcs.TrySetResult(); // This closes the websocket connection.
-         connection.socket.Dispose();
-      }
+      var sendTasks = sockets.Select(s => s.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct));
+      await Task.WhenAll(sendTasks.Select(x => x.AsTask()));
    }
 }
