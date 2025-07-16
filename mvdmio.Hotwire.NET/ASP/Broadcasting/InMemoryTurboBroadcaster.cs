@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net.WebSockets;
 using System.Text;
@@ -8,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
+using mvdmio.Hotwire.NET.ASP.Broadcasting.ValueObjects;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 
 namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
@@ -18,7 +18,7 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
 {
    private readonly ILogger<InMemoryTurboBroadcaster> _logger;
-   private readonly ConcurrentDictionary<Guid, (string channel, WebSocket socket)> _connections;
+   private readonly ConcurrentDictionary<ConnectionId, (string channel, WebSocket socket)> _connections;
 
    /// <summary>
    ///   Constructor.
@@ -26,13 +26,13 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
    public InMemoryTurboBroadcaster(ILogger<InMemoryTurboBroadcaster> logger)
    {
       _logger = logger;
-      _connections = new ConcurrentDictionary<Guid, (string channel, WebSocket socket)>();
+      _connections = new ConcurrentDictionary<ConnectionId, (string channel, WebSocket socket)>();
    }
 
    /// <inheritdoc />
-   public Task<Guid> AddConnection(string channel, WebSocket webSocket)
+   public Task<ConnectionId> AddConnection(string channel, WebSocket webSocket)
    {
-      var connectionId = Guid.NewGuid();
+      var connectionId = new ConnectionId();
 
       if (_connections.TryAdd(connectionId, (channel, webSocket)))
          return Task.FromResult(connectionId);
@@ -41,7 +41,7 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
    }
 
    /// <inheritdoc />
-   public Task RemoveConnection(Guid connectionId)
+   public Task RemoveConnection(ConnectionId connectionId)
    {
       if(!_connections.TryRemove(connectionId, out _))
          throw new InvalidOperationException("Failed to remove connection from the broadcaster. This should not happen.");
@@ -56,15 +56,12 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
       var message = await turboAction.Render();
       var buffer = Encoding.UTF8.GetBytes(message.Value!);
 
-      var sendTasks = new List<Task>();
       foreach (var connection in connections)
       {
-         _logger.LogInformation("Sending Turbo Action to channel '{Channel}' with connection ID {ConnectionId}", channel, connection.Key);
+         _logger.LogDebug("Sending Turbo Action to channel '{Channel}' with connection ID {ConnectionId}", channel, connection.Key.Value);
          
          var socket = connection.Value.socket;
-         sendTasks.Add(socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct).AsTask());
+         await socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct);
       }
-      
-      await Task.WhenAll(sendTasks);
    }
 }

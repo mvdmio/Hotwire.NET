@@ -4,17 +4,19 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
+using mvdmio.Hotwire.NET.ASP.Broadcasting.ValueObjects;
 
 namespace mvdmio.Hotwire.NET.ASP.Broadcasting;
 
 /// <summary>
 ///   Middleware for accepting Turbo Streams websocket connections.
 /// </summary>
-public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
+public sealed class TurboStreamsWebsocketMiddleware : IMiddleware
 {
-   private readonly CancellationTokenSource _shutdownCts = new();
+   private readonly CancellationToken _shutdownCt;
    
    private readonly ITurboBroadcaster _broadcaster;
    private readonly IChannelEncryption _channelEncryption;
@@ -23,11 +25,13 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public TurboStreamsWebsocketMiddleware(ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
+   public TurboStreamsWebsocketMiddleware(IHostApplicationLifetime applicationLifetime, ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
    {
       _broadcaster = broadcaster;
       _channelEncryption = channelEncryption;
       _logger = logger;
+      
+      _shutdownCt = applicationLifetime.ApplicationStopping;
    }
 
    /// <inheritdoc />
@@ -68,7 +72,7 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
             var connectionId = await _broadcaster.AddConnection(channelName, webSocket);
             _ = HandleConnectionAsync(connectionId, channelName, webSocket, tcs);
             
-            _logger.LogInformation("Accepted websocket connection {Id} for channel {ChannelName}", connectionId, channelName);
+            _logger.LogInformation("Accepted websocket connection {Id} for channel {ChannelName}", connectionId.Value, channelName);
 
             await tcs.Task; // Block until the application shuts down or the client closes the connection.
          }
@@ -84,17 +88,17 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
       }
    }
    
-   private async Task HandleConnectionAsync(Guid connectionId, string channel, WebSocket webSocket, TaskCompletionSource tcs)
+   private async Task HandleConnectionAsync(ConnectionId connectionId, string channel, WebSocket webSocket, TaskCompletionSource tcs)
    {
       var buffer = new byte[4096]; // For receive; size doesn't matter if ignoring data
       try
       {
-         while (webSocket.State == WebSocketState.Open && !_shutdownCts.IsCancellationRequested)
+         while (webSocket.State == WebSocketState.Open && !_shutdownCt.IsCancellationRequested)
          {
-            var result = await webSocket.ReceiveAsync(buffer, _shutdownCts.Token);
+            var result = await webSocket.ReceiveAsync(buffer, _shutdownCt);
             if (result.MessageType == WebSocketMessageType.Close)
             {
-               _logger.LogInformation("Client closed WebSocket {Id} for channel {Channel}", connectionId, channel);
+               _logger.LogInformation("Client closed WebSocket {Id} for channel {Channel}", connectionId.Value, channel);
                break;
             }
             // Ignore any received data (or handle if needed, e.g., protocol messages)
@@ -103,7 +107,7 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
       catch (OperationCanceledException) { } // Shutdown
       catch (WebSocketException ex)
       {
-         _logger.LogWarning(ex, "WebSocket {Id} error for channel {Channel}", connectionId, channel);
+         _logger.LogWarning(ex, "WebSocket {Id} error for channel {Channel}", connectionId.Value, channel);
       }
       finally
       {
@@ -115,11 +119,5 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware, IDisposable
          webSocket.Dispose();
          tcs.TrySetResult(); // Unblock middleware
       }
-   }
-
-   /// <inheritdoc />
-   public void Dispose()
-   {
-      _shutdownCts.Cancel();
    }
 }
