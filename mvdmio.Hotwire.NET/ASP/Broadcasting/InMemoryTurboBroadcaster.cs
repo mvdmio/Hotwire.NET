@@ -52,11 +52,19 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
    /// <inheritdoc />
    public async Task BroadcastAsync(string channel, ITurboAction turboAction, CancellationToken ct = default)
    {
-      var sockets = _connections.Where(x => x.Value.channel == channel).Select(x => x.Value.socket);
+      var connections = _connections.Where(x => x.Value.channel == channel);
       var message = await turboAction.Render();
       var buffer = Encoding.UTF8.GetBytes(message.Value!);
 
-      var sendTasks = sockets.Select(s => s.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct));
-      await Task.WhenAll(sendTasks.Select(x => x.AsTask()));
+      var sendTasks = new List<Task>();
+      foreach (var connection in connections)
+      {
+         _logger.LogInformation("Sending Turbo Action to channel '{Channel}' with connection ID {ConnectionId}", channel, connection.Key);
+         
+         var socket = connection.Value.socket;
+         sendTasks.Add(socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct).AsTask());
+      }
+      
+      await Task.WhenAll(sendTasks);
    }
 }
