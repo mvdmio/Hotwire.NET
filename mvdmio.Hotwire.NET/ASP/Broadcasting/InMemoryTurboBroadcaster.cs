@@ -58,7 +58,7 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
 
       foreach (var connection in connections)
       {
-         _logger.LogDebug("Sending Turbo Action to channel '{Channel}' with connection ID {ConnectionId}", channel, connection.Key.Value);
+         _logger.LogInformation("Sending {Action} to channel '{Channel}' with connection ID {ConnectionId}", turboAction.GetType().Name, channel, connection.Key.Value);
          
          var socket = connection.Value.socket;
          await socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct);
