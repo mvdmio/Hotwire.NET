@@ -105,9 +105,11 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware
          }
       }
       catch (OperationCanceledException) { } // Shutdown
-      catch (WebSocketException ex)
+      catch (WebSocketException)
       {
-         _logger.LogWarning(ex, "WebSocket {Id} error for channel {Channel}", connectionId.Value, channel);
+         // This happens when the browser closes the websocket connection without the close handshake. Occurs often when the browser is refreshed.
+         // We can just remove the connection when this happens.
+         _logger.LogInformation("WebSocket {Id} closed by client", connectionId.Value);
       }
       finally
       {
