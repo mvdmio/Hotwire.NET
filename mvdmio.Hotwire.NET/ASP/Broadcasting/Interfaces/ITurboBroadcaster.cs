@@ -30,8 +30,8 @@ public interface ITurboBroadcaster
    /// <summary>
    ///   Broadcast a <see cref="RefreshTurboAction"/> to the channel.
    /// </summary>
-   async Task BroadcastRefreshAsync(string channel, CancellationToken ct = default)
+   async Task BroadcastRefreshAsync(string channel, string? requestId = null, CancellationToken ct = default)
    {
-      await BroadcastAsync(channel, new RefreshTurboAction(), ct);
+      await BroadcastAsync(channel, new RefreshTurboAction(requestId), ct);
    }
 }

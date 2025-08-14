@@ -31,9 +31,9 @@ public static class ControllerExtensions
    /// <summary>
    ///    Create a <see cref="TurboStreamActionResult" /> with a <see cref="RefreshTurboAction"/>.
    /// </summary>
-   public static TurboStreamActionResult TurboStreamRefresh(this Controller pageModel)
+   public static TurboStreamActionResult TurboStreamRefresh(this Controller pageModel, string? requestId = null)
    {
-      return TurboStream(pageModel, new RefreshTurboAction());
+      return TurboStream(pageModel, new RefreshTurboAction(requestId));
    }
 
    /// <summary>

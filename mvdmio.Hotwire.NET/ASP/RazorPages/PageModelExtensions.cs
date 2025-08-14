@@ -35,13 +35,13 @@ public static class PageModelExtensions
    {
       return new TurboStreamActionResult(actions);
    }
-   
+
    /// <summary>
    ///    Create a <see cref="TurboStreamActionResult" /> with a <see cref="RefreshTurboAction"/>.
    /// </summary>
-   public static TurboStreamActionResult TurboStreamRefresh(this PageModel pageModel)
+   public static TurboStreamActionResult TurboStreamRefresh(this PageModel pageModel, string? requestId = null)
    {
-      return TurboStream(pageModel, new RefreshTurboAction());
+      return TurboStream(pageModel, new RefreshTurboAction(requestId));
    }
 
    /// <summary>
