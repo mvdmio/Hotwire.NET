@@ -30,23 +30,33 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
    }
 
    /// <inheritdoc />
-   public Task<ConnectionId> AddConnection(string channel, WebSocket webSocket)
+   public Task<ConnectionId> AddConnection(string channel, WebSocket webSocket, CancellationToken ct = default)
    {
       var connectionId = new ConnectionId();
 
       if (_connections.TryAdd(connectionId, (channel, webSocket)))
          return Task.FromResult(connectionId);
-
+      
       throw new InvalidOperationException("Failed to add connection to the broadcaster. This should not happen.");
    }
 
    /// <inheritdoc />
-   public Task RemoveConnection(ConnectionId connectionId)
+   public async Task RemoveConnection(ConnectionId connectionId, CancellationToken ct = default)
    {
-      if(!_connections.TryRemove(connectionId, out _))
-         throw new InvalidOperationException("Failed to remove connection from the broadcaster. This should not happen.");
+      if (!_connections.TryRemove(connectionId, out var connection))
+         return; // Connection already removed.
 
-      return Task.CompletedTask;
+      try
+      {
+         if (connection.socket.State == WebSocketState.Open)
+            await connection.socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Server closing connection", ct);
+         
+         connection.socket.Dispose();
+      }
+      catch (Exception ex)
+      {
+         _logger.LogError(ex, "Failed to close websocket connection.");
+      }
    }
 
    /// <inheritdoc />
@@ -61,7 +71,15 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
          _logger.LogInformation("Sending {Action} to channel '{Channel}' with connection ID {ConnectionId}", turboAction.GetType().Name, channel, connection.Key.Value);
          
          var socket = connection.Value.socket;
-         await socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct);
+         try
+         {
+            await socket.SendAsync(buffer, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage | WebSocketMessageFlags.DisableCompression, ct);
+         }
+         catch (WebSocketException)
+         {
+            _logger.LogWarning("Error while sending {Action} to channel '{Channel} with connection ID {ConnectionId}. Closing connection.", turboAction.GetType().Name, channel, connection.Key.Value);
+            await RemoveConnection(connection.Key, ct);
+         }
       }
    }
 }

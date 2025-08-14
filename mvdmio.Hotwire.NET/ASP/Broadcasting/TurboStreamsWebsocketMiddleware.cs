@@ -111,12 +111,7 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware
       }
       finally
       {
-         await _broadcaster.RemoveConnection(connectionId);
-         if (webSocket.State != WebSocketState.Closed && webSocket.State != WebSocketState.Aborted)
-         {
-            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Connection closed", CancellationToken.None);
-         }
-         webSocket.Dispose();
+         await _broadcaster.RemoveConnection(connectionId, _shutdownCt); // This also closes and disposes the socket.
          tcs.TrySetResult(); // Unblock middleware
       }
    }
