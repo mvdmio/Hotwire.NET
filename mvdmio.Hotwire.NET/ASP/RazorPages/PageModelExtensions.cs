@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
@@ -136,6 +137,17 @@ public static class PageModelExtensions
 
       var modified = urlModificationAction.Invoke(referer.Value);
         return new RedirectResult(modified);
+   }
+   
+   /// <summary>
+   ///   Create a <see cref="PageResult"/> with status code 422: Unprocessable Content.
+   ///   Docs: https://turbo.hotwired.dev/handbook/drive#redirecting-after-a-form-submission
+   /// </summary>
+   public static PageResult PageWithValidationErrors(PageModel pageModel)
+   {
+      // https://turbo.hotwired.dev/handbook/drive#redirecting-after-a-form-submission
+      pageModel.Response.StatusCode = (int)HttpStatusCode.UnprocessableContent;
+      return pageModel.Page();
    }
 
    private static ViewEngineResult LoadView(PageModel pageModel, string viewNamePath)

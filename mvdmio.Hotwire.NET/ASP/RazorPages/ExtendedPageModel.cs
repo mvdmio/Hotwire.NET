@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics.CodeAnalysis;
+using System.Net;
 using System.Threading.Tasks;
 using JetBrains.Annotations;
 using Microsoft.AspNetCore.Html;
@@ -31,6 +32,15 @@ public abstract class ExtendedPageModel : PageModel
    protected TurboStreamActionResult TurboStreamRefresh()
    {
       return PageModelExtensions.TurboStreamRefresh(this);
+   }
+
+   /// <summary>
+   ///   Create a <see cref="PageResult"/> with status code 422: Unprocessable Content.
+   ///   Docs: https://turbo.hotwired.dev/handbook/drive#redirecting-after-a-form-submission
+   /// </summary>
+   protected PageResult PageWithValidationErrors()
+   {
+      return PageModelExtensions.PageWithValidationErrors(this);
    }
    
    /// <summary>
