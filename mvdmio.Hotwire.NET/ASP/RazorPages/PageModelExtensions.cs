@@ -141,7 +141,7 @@ public static class PageModelExtensions
    
    /// <summary>
    ///   Create a <see cref="PageResult"/> with status code 422: Unprocessable Content.
-   ///   Docs: https://turbo.hotwired.dev/handbook/drive#redirecting-after-a-form-submission
+   ///   Docs: <see href="https://turbo.hotwired.dev/handbook/drive#redirecting-after-a-form-submission" />
    /// </summary>
    public static PageResult PageWithValidationErrors(PageModel pageModel)
    {
