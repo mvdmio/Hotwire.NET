@@ -49,8 +49,7 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware
       {
          if (!context.Request.Path.StartsWithSegments("/turbo/ws"))
          {
-            _logger.LogWarning("Received websocket connection request on the wrong path. Expected /turbo/ws, but was {Path}", context.Request.Path);
-            context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+            await next(context);
             return;
          }
 
@@ -87,7 +86,6 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware
          _logger.LogError(ex, "Error in TurboStreamsWebsocketMiddleware");
       }
    }
-   
    private async Task HandleConnectionAsync(ConnectionId connectionId, string channel, WebSocket webSocket, TaskCompletionSource tcs)
    {
       var buffer = new byte[4096]; // For receive; size doesn't matter if ignoring data
