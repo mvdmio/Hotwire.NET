@@ -1,5 +1,4 @@
 using System;
-using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +12,7 @@ using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.ValueObjects;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
+using mvdmio.Hotwire.NET.Tests._Stubs;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.Broadcasting;
@@ -47,29 +47,21 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
    [Fact]
    public async Task InvokeAsync_ShouldRespondBadRequest_WhenTokenComesFromForeignKeyRing()
    {
-      var keyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-keys-");
-      var foreignKeyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-foreign-keys-");
-      try
-      {
-         var foreignToken = new DataProtectionChannelEncryption(DataProtectionProvider.Create(foreignKeyDirectory)).Encrypt("test");
-         var broadcaster = new TestTurboBroadcaster();
-         var channelEncryption = new DataProtectionChannelEncryption(DataProtectionProvider.Create(keyDirectory));
-         var applicationLifetime = new TestHostApplicationLifetime();
-         var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
-         var context = new DefaultHttpContext();
-         context.Request.Path = "/turbo/ws/" + foreignToken;
-         context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
+      using var keyDirectory = new TemporaryKeyDirectory();
+      using var foreignKeyDirectory = new TemporaryKeyDirectory();
+      var foreignToken = new DataProtectionChannelEncryption(DataProtectionProvider.Create(foreignKeyDirectory.Directory)).Encrypt("test");
+      var broadcaster = new TestTurboBroadcaster();
+      var channelEncryption = new DataProtectionChannelEncryption(DataProtectionProvider.Create(keyDirectory.Directory));
+      var applicationLifetime = new TestHostApplicationLifetime();
+      var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+      var context = new DefaultHttpContext();
+      context.Request.Path = "/turbo/ws/" + foreignToken;
+      context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
 
-         await sut.InvokeAsync(context, _ => Task.CompletedTask);
+      await sut.InvokeAsync(context, _ => Task.CompletedTask);
 
-         context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
-         broadcaster.AddConnectionWasCalled.Should().BeFalse();
-      }
-      finally
-      {
-         keyDirectory.Delete(recursive: true);
-         foreignKeyDirectory.Delete(recursive: true);
-      }
+      context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+      broadcaster.AddConnectionWasCalled.Should().BeFalse();
    }
 
    private sealed class TestTurboBroadcaster : ITurboBroadcaster

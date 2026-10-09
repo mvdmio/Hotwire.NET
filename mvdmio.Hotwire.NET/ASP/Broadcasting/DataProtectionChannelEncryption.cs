@@ -40,11 +40,7 @@ public sealed class DataProtectionChannelEncryption : IChannelEncryption
       {
          return _protector.Unprotect(signedChannelName);
       }
-      catch (CryptographicException ex)
-      {
-         throw new ArgumentException("Invalid channel name", nameof(signedChannelName), ex);
-      }
-      catch (FormatException ex)
+      catch (Exception ex) when (ex is CryptographicException or FormatException)
       {
          throw new ArgumentException("Invalid channel name", nameof(signedChannelName), ex);
       }

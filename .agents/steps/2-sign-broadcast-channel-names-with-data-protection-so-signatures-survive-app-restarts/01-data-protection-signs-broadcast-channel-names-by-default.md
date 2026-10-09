@@ -1,6 +1,6 @@
 # 01 — Data Protection signs broadcast channel names by default
 
-Status: built
+Status: done
 Depends on: none
 
 ## What to build
@@ -57,7 +57,7 @@ Projects: `mvdmio.Hotwire.NET`, `mvdmio.Hotwire.NET.Tests`, `Example.ASP.NetCore
 
 ## Outcome
 
-Safety fact: a channel token signed by one service provider built with `AddTurboStreamsBroadcasting()` verifies in a second provider over the same persisted Data Protection key folder, while a foreign-key-ring token still gets HTTP 400 with no broadcaster connection; if false, open pages break after every restart or forged tokens open sockets (rung 3)
+Safety fact: a channel token signed by one service provider built with `AddTurboStreamsBroadcasting()` verifies in a second provider over the same persisted Data Protection key folder, while a foreign-key-ring token gets HTTP 400 from the websocket middleware with no broadcaster connection; if false, open pages break after every restart or forged tokens open sockets (rung 3)
 Proof: `DOTNET_ROLL_FORWARD=Major dotnet test mvdmio.Hotwire.NET.Tests/mvdmio.Hotwire.NET.Tests.csproj --filter "FullyQualifiedName~AddTurboStreamsBroadcastingTests|FullyQualifiedName~InvokeAsync_ShouldRespondBadRequest_WhenTokenComesFromForeignKeyRing" --logger "console;verbosity=normal"` exit 0 — Passed AddTurboStreamsBroadcastingTests.Decrypt_ShouldAcceptTokenSignedBeforeRestart / Passed TurboStreamsWebsocketMiddlewareTests.InvokeAsync_ShouldRespondBadRequest_WhenTokenComesFromForeignKeyRing / Total tests: 4, Passed: 4
 Merge risk: hard — once 1.8.0 is published to NuGet the version and the token format other hosts render stay out there after a revert; affects every app on 1.8.0 that renders `<turbo-broadcast-channel>` (pages rendered by 1.8.0 are refused by an RSA-signing build, and the reverse)
 
@@ -65,3 +65,5 @@ Merge risk: hard — once 1.8.0 is published to NuGet the version and the token 
 - Rung 4 not attempted: library change; the Proof rules cap a library at rung 3.
 - Proof transcript not saved to the Proof folder: the worktree sandbox refuses writes under `.git/proof/`, so the `Proof:` line names the command instead.
 - Footprint drift: none. Extra garbage-input case `test.c2lnbmF0dXJl` covers an old RSA-format token.
+- Checker fixes: `DataProtectionChannelEncryption.Decrypt` uses one `catch ... when (ex is CryptographicException or FormatException)`; tests share `mvdmio.Hotwire.NET.Tests/_Stubs/TemporaryKeyDirectory` (a disposable temp key folder) for every Data Protection key folder; the concurrency test is now `EncryptAndDecrypt_ShouldRoundTrip_WhenCalledConcurrently`; README inline code uses single backticks.
+- Not changed: `IChannelEncryption.Encrypt`/`Decrypt` say "encrypt" while the docs say "sign"; the Spec keeps the interface names.

@@ -1,22 +1,21 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.DataProtection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
+using mvdmio.Hotwire.NET.Tests._Stubs;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.Broadcasting;
 
 public sealed class DataProtectionChannelEncryptionTests : IDisposable
 {
-   private readonly DirectoryInfo _keyDirectory;
-   private readonly DirectoryInfo _foreignKeyDirectory;
+   private readonly TemporaryKeyDirectory _keyDirectory = new();
+   private readonly TemporaryKeyDirectory _foreignKeyDirectory = new();
    private readonly IDataProtectionProvider _provider;
    private readonly DataProtectionChannelEncryption _sut;
 
    public DataProtectionChannelEncryptionTests()
    {
-      _keyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-keys-");
-      _foreignKeyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-foreign-keys-");
-      _provider = DataProtectionProvider.Create(_keyDirectory);
+      _provider = DataProtectionProvider.Create(_keyDirectory.Directory);
       _sut = new DataProtectionChannelEncryption(_provider);
    }
 
@@ -47,7 +46,7 @@ public sealed class DataProtectionChannelEncryptionTests : IDisposable
    [Fact]
    public void Decrypt_ShouldThrowArgumentException_WhenTokenComesFromForeignKeyRing()
    {
-      var foreignSut = new DataProtectionChannelEncryption(DataProtectionProvider.Create(_foreignKeyDirectory));
+      var foreignSut = new DataProtectionChannelEncryption(DataProtectionProvider.Create(_foreignKeyDirectory.Directory));
       var token = foreignSut.Encrypt("test");
 
       var act = () => _sut.Decrypt(token);
@@ -90,7 +89,7 @@ public sealed class DataProtectionChannelEncryptionTests : IDisposable
    }
 
    [Fact]
-   public async Task MultipleThreads()
+   public async Task EncryptAndDecrypt_ShouldRoundTrip_WhenCalledConcurrently()
    {
       var tasks = new List<Task>();
       for (var i = 0; i < 100; i++)
@@ -113,7 +112,7 @@ public sealed class DataProtectionChannelEncryptionTests : IDisposable
 
    public void Dispose()
    {
-      _keyDirectory.Delete(recursive: true);
-      _foreignKeyDirectory.Delete(recursive: true);
+      _keyDirectory.Dispose();
+      _foreignKeyDirectory.Dispose();
    }
 }

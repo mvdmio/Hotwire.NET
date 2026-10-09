@@ -125,7 +125,7 @@ Channel names are signed with [ASP.NET Core Data Protection](https://learn.micro
 using your application's Data Protection key ring. The signed name is placed in the websocket URL of each broadcast channel.
 
 - Signatures survive an application restart only when the app keeps its Data Protection keys between restarts,
-  for example with ``PersistKeysToFileSystem``. Without persisted keys, pages rendered before a restart can no longer connect.
+  for example with `PersistKeysToFileSystem`. Without persisted keys, pages rendered before a restart can no longer connect.
 - When running more than one instance, all instances need a shared key ring and the same application name:
 
 ```csharp
@@ -134,8 +134,8 @@ builder.Services.AddDataProtection()
    .SetApplicationName("my-app");
 ```
 
-To use a different signer, register your own ``IChannelEncryption`` after calling ``AddTurboStreamsBroadcasting()``.
-For example, ``RsaChannelEncryption`` restores the previous in-memory behaviour, where signatures are lost on every restart:
+To use a different signer, register your own `IChannelEncryption` after calling `AddTurboStreamsBroadcasting()`.
+For example, `RsaChannelEncryption` restores the previous in-memory behaviour, where signatures are lost on every restart:
 
 ```csharp
 builder.Services.AddTurboStreamsBroadcasting();

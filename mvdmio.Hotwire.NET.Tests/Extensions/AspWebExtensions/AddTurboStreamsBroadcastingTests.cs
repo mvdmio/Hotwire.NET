@@ -4,18 +4,14 @@ using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 using mvdmio.Hotwire.NET.ASP.Extensions;
+using mvdmio.Hotwire.NET.Tests._Stubs;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.Extensions.AspWebExtensions;
 
 public sealed class AddTurboStreamsBroadcastingTests : IDisposable
 {
-   private readonly DirectoryInfo _keyDirectory;
-
-   public AddTurboStreamsBroadcastingTests()
-   {
-      _keyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-keys-");
-   }
+   private readonly TemporaryKeyDirectory _keyDirectory = new();
 
    [Fact]
    public void Decrypt_ShouldAcceptTokenSignedBeforeRestart()
@@ -59,14 +55,14 @@ public sealed class AddTurboStreamsBroadcastingTests : IDisposable
 
    public void Dispose()
    {
-      _keyDirectory.Delete(recursive: true);
+      _keyDirectory.Dispose();
    }
 
    private ServiceProvider BuildServiceProvider()
    {
       var services = new ServiceCollection();
       services.AddTurboStreamsBroadcasting();
-      services.AddDataProtection().PersistKeysToFileSystem(_keyDirectory);
+      services.AddDataProtection().PersistKeysToFileSystem(_keyDirectory.Directory);
 
       return services.BuildServiceProvider();
    }
