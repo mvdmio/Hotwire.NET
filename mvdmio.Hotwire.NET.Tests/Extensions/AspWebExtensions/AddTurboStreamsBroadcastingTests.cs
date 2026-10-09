@@ -4,7 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 using mvdmio.Hotwire.NET.ASP.Extensions;
-using mvdmio.Hotwire.NET.Tests._Stubs;
+using mvdmio.Hotwire.NET.Tests._Helpers;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.Extensions.AspWebExtensions;
@@ -14,7 +14,7 @@ public sealed class AddTurboStreamsBroadcastingTests : IDisposable
    private readonly TemporaryKeyDirectory _keyDirectory = new();
 
    [Fact]
-   public void Decrypt_ShouldAcceptTokenSignedBeforeRestart()
+   public void ShouldAcceptTokenSignedBeforeRestart()
    {
       const string channelName = "record-page:2:Requirement:iso-27001-2022|5.2";
       string token;
@@ -62,7 +62,7 @@ public sealed class AddTurboStreamsBroadcastingTests : IDisposable
    {
       var services = new ServiceCollection();
       services.AddTurboStreamsBroadcasting();
-      services.AddDataProtection().PersistKeysToFileSystem(_keyDirectory.Directory);
+      services.AddDataProtection().PersistKeysToFileSystem(_keyDirectory.DirectoryInfo);
 
       return services.BuildServiceProvider();
    }

@@ -14,7 +14,7 @@ using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.ValueObjects;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
-using mvdmio.Hotwire.NET.Tests._Stubs;
+using mvdmio.Hotwire.NET.Tests._Helpers;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.Broadcasting;
@@ -25,12 +25,8 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
    public async Task InvokeAsync_ShouldPassThroughWebsocketRequestsOnOtherPaths()
    {
       var broadcaster = new TestTurboBroadcaster();
-      var channelEncryption = new TestChannelEncryption();
-      var applicationLifetime = new TestHostApplicationLifetime();
-      var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
-      var context = new DefaultHttpContext();
-      context.Request.Path = "/other/ws";
-      context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
+      var sut = CreateMiddleware(broadcaster, new TestChannelEncryption(), NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+      var context = CreateWebsocketRequest("/other/ws");
       var nextWasCalled = false;
 
       await sut.InvokeAsync(
@@ -51,15 +47,12 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
    {
       using var keyDirectory = new TemporaryKeyDirectory();
       using var foreignKeyDirectory = new TemporaryKeyDirectory();
-      var foreignToken = new DataProtectionChannelEncryption(DataProtectionProvider.Create(foreignKeyDirectory.Directory)).Encrypt("test");
+      var foreignToken = new DataProtectionChannelEncryption(DataProtectionProvider.Create(foreignKeyDirectory.DirectoryInfo)).Encrypt("test");
       var broadcaster = new TestTurboBroadcaster();
-      var channelEncryption = new DataProtectionChannelEncryption(DataProtectionProvider.Create(keyDirectory.Directory));
-      var applicationLifetime = new TestHostApplicationLifetime();
+      var channelEncryption = new DataProtectionChannelEncryption(DataProtectionProvider.Create(keyDirectory.DirectoryInfo));
       var logger = new RecordingLogger<TurboStreamsWebsocketMiddleware>();
-      var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, logger);
-      var context = new DefaultHttpContext();
-      context.Request.Path = "/turbo/ws/" + foreignToken;
-      context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
+      var sut = CreateMiddleware(broadcaster, channelEncryption, logger);
+      var context = CreateWebsocketRequest("/turbo/ws/" + foreignToken);
 
       await sut.InvokeAsync(context, _ => Task.CompletedTask);
 
@@ -67,6 +60,20 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
       broadcaster.AddConnectionWasCalled.Should().BeFalse();
       logger.Entries.Should().ContainSingle(entry => entry.Level == LogLevel.Warning)
          .Which.Message.Should().Be("Received websocket connection request with invalid signature");
+   }
+
+   private static TurboStreamsWebsocketMiddleware CreateMiddleware(ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
+   {
+      return new TurboStreamsWebsocketMiddleware(new TestHostApplicationLifetime(), broadcaster, channelEncryption, logger);
+   }
+
+   private static DefaultHttpContext CreateWebsocketRequest(string path)
+   {
+      var context = new DefaultHttpContext();
+      context.Request.Path = path;
+      context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
+
+      return context;
    }
 
    private sealed class TestTurboBroadcaster : ITurboBroadcaster

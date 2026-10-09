@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Microsoft.AspNetCore.DataProtection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
-using mvdmio.Hotwire.NET.Tests._Stubs;
+using mvdmio.Hotwire.NET.Tests._Helpers;
 using Xunit;
 
 namespace mvdmio.Hotwire.NET.Tests.Broadcasting;
@@ -15,15 +15,20 @@ public sealed class DataProtectionChannelEncryptionTests : IDisposable
 
    public DataProtectionChannelEncryptionTests()
    {
-      _provider = DataProtectionProvider.Create(_keyDirectory.Directory);
+      _provider = DataProtectionProvider.Create(_keyDirectory.DirectoryInfo);
       _sut = new DataProtectionChannelEncryption(_provider);
    }
 
+   public static TheoryData<string> ChannelNames => new()
+   {
+      "test",
+      "record-page:2:Requirement:iso-27001-2022|5.2",
+      "eu-gdpr-2016|Art. 5(1)(a)",
+      "überprüfung-ærø-日本語"
+   };
+
    [Theory]
-   [InlineData("test")]
-   [InlineData("record-page:2:Requirement:iso-27001-2022|5.2")]
-   [InlineData("eu-gdpr-2016|Art. 5(1)(a)")]
-   [InlineData("überprüfung-ærø-日本語")]
+   [MemberData(nameof(ChannelNames))]
    public void Decrypt_ShouldReturnOriginalChannelName(string channelName)
    {
       var token = _sut.Encrypt(channelName);
@@ -32,10 +37,7 @@ public sealed class DataProtectionChannelEncryptionTests : IDisposable
    }
 
    [Theory]
-   [InlineData("test")]
-   [InlineData("record-page:2:Requirement:iso-27001-2022|5.2")]
-   [InlineData("eu-gdpr-2016|Art. 5(1)(a)")]
-   [InlineData("überprüfung-ærø-日本語")]
+   [MemberData(nameof(ChannelNames))]
    public void Encrypt_ShouldReturnPathSafeToken(string channelName)
    {
       var token = _sut.Encrypt(channelName);
@@ -46,7 +48,7 @@ public sealed class DataProtectionChannelEncryptionTests : IDisposable
    [Fact]
    public void Decrypt_ShouldThrowArgumentException_WhenTokenComesFromForeignKeyRing()
    {
-      var foreignSut = new DataProtectionChannelEncryption(DataProtectionProvider.Create(_foreignKeyDirectory.Directory));
+      var foreignSut = new DataProtectionChannelEncryption(DataProtectionProvider.Create(_foreignKeyDirectory.DirectoryInfo));
       var token = foreignSut.Encrypt("test");
 
       var act = () => _sut.Decrypt(token);
