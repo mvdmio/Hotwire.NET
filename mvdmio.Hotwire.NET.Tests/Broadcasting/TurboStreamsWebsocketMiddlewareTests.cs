@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
@@ -53,7 +55,8 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
       var broadcaster = new TestTurboBroadcaster();
       var channelEncryption = new DataProtectionChannelEncryption(DataProtectionProvider.Create(keyDirectory.Directory));
       var applicationLifetime = new TestHostApplicationLifetime();
-      var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+      var logger = new RecordingLogger<TurboStreamsWebsocketMiddleware>();
+      var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, logger);
       var context = new DefaultHttpContext();
       context.Request.Path = "/turbo/ws/" + foreignToken;
       context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
@@ -62,6 +65,8 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
 
       context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
       broadcaster.AddConnectionWasCalled.Should().BeFalse();
+      logger.Entries.Should().ContainSingle(entry => entry.Level == LogLevel.Warning)
+         .Which.Message.Should().Be("Received websocket connection request with invalid signature");
    }
 
    private sealed class TestTurboBroadcaster : ITurboBroadcaster
@@ -108,6 +113,26 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
 
       public void StopApplication()
       {
+      }
+   }
+
+   private sealed class RecordingLogger<T> : ILogger<T>
+   {
+      public List<(LogLevel Level, string Message)> Entries { get; } = [];
+
+      public IDisposable? BeginScope<TState>(TState state) where TState : notnull
+      {
+         return null;
+      }
+
+      public bool IsEnabled(LogLevel logLevel)
+      {
+         return true;
+      }
+
+      public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
+      {
+         Entries.Add((logLevel, formatter(state, exception)));
       }
    }
 

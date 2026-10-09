@@ -124,8 +124,10 @@ OR
 Channel names are signed with [ASP.NET Core Data Protection](https://learn.microsoft.com/aspnet/core/security/data-protection/introduction),
 using your application's Data Protection key ring. The signed name is placed in the websocket URL of each broadcast channel.
 
-- Signatures survive an application restart only when the app keeps its Data Protection keys between restarts,
-  for example with `PersistKeysToFileSystem`. Without persisted keys, pages rendered before a restart can no longer connect.
+- Signatures survive an application restart only when the app keeps its Data Protection keys between restarts.
+  By default ASP.NET Core stores keys in the user profile folder when one is available, so many hosts already keep them.
+  Hosts without a persistent user profile, such as most containers, keep keys in memory only; configure a key store there,
+  for example with `PersistKeysToFileSystem`. When keys are lost on restart, pages rendered before the restart can no longer connect.
 - When running more than one instance, all instances need a shared key ring and the same application name:
 
 ```csharp
