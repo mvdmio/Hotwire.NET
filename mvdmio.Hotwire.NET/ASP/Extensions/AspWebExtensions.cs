@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Razor.TagHelpers;
 using Microsoft.Extensions.DependencyInjection;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
@@ -15,14 +16,16 @@ public static class AspWebExtensions
 {
    /// <summary>
    /// Adds the Turbo Streams broadcasting services to the application.
+   /// Channel names are signed with ASP.NET Core Data Protection, using the application's Data Protection key ring.
    /// </summary>
    public static void AddTurboStreamsBroadcasting(this IServiceCollection services)
    {
       services.AddHttpContextAccessor();
+      services.AddDataProtection(); // Safe to call more than once; the host's own Data Protection configuration still applies.
 
       services.AddScoped<TurboStreamsWebsocketMiddleware>(); // Should be scoped so that each websocket connection has its own instance. The middleware blocks until the application is shut down or the client closes the connection.
       services.AddSingleton<ITurboBroadcaster, InMemoryTurboBroadcaster>();
-      services.AddSingleton<IChannelEncryption, RsaChannelEncryption>();
+      services.AddSingleton<IChannelEncryption, DataProtectionChannelEncryption>(); // Plain AddSingleton so an app registration made afterwards wins.
 
       services.AddScoped<IViewRenderService, ViewRenderService>();
 

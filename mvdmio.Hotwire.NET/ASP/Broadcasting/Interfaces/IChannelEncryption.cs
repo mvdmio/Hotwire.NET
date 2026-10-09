@@ -13,5 +13,6 @@ public interface IChannelEncryption
    /// <summary>
    /// Decrypt the channel name.
    /// </summary>
+   /// <exception cref="System.ArgumentException">Thrown when <paramref name="signedChannelName"/> fails verification.</exception>
    string Decrypt(string signedChannelName);
 }

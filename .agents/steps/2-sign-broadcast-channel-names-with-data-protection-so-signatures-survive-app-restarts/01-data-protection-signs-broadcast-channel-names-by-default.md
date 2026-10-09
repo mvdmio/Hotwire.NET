@@ -1,6 +1,6 @@
 # 01 — Data Protection signs broadcast channel names by default
 
-Status: pending
+Status: built
 Depends on: none
 
 ## What to build
@@ -41,16 +41,27 @@ Projects: `mvdmio.Hotwire.NET`, `mvdmio.Hotwire.NET.Tests`, `Example.ASP.NetCore
 
 ## Acceptance criteria
 
-- [ ] Restart: provider A is built with `AddTurboStreamsBroadcasting()`, with Data Protection keys persisted to a temporary folder. It signs a channel name and is then disposed. Provider B is built the same way over the same folder. B's `IChannelEncryption.Decrypt` returns the original name for A's token.
-- [ ] Foreign key ring: a token signed through a provider over a different key folder makes `Decrypt` throw `ArgumentException`.
-- [ ] Edited token: changing one character in the middle of a valid token to a different Base64 URL character makes `Decrypt` throw `ArgumentException`. Do not edit the last character, because its low bits can be unused.
-- [ ] Garbage input: input with a period or a space, such as `abc.def` or `abc def`, makes `Decrypt` throw `ArgumentException`, not `FormatException`.
-- [ ] Other purpose: a payload protected by the same provider under a different purpose makes `Decrypt` throw `ArgumentException`.
-- [ ] Round trip: `record-page:2:Requirement:iso-27001-2022|5.2`, `eu-gdpr-2016|Art. 5(1)(a)`, and a name with non-ASCII letters come back unchanged.
-- [ ] Path-safe token: for every round-trip token, `Uri.EscapeDataString(token)` equals `token`.
-- [ ] Concurrency: 100 parallel sign-and-verify calls on one signer all round-trip.
-- [ ] Middleware refusal: the websocket middleware runs with a real `DataProtectionChannelEncryption` and the path `/turbo/ws/<foreign-key-ring token>`. The response is 400, and the broadcaster's `AddConnection` is not called.
-- [ ] Registration: after `AddTurboStreamsBroadcasting()`, resolving `IChannelEncryption` gives a `DataProtectionChannelEncryption`. An `IChannelEncryption` registered afterwards replaces it.
-- [ ] `IChannelEncryption` keeps its two members. `RsaChannelEncryption` is still public and unchanged, and its existing tests pass.
-- [ ] The package version is 1.8.0, and the README's Turbo Broadcasting section covers Data Protection signing, persisted keys for restarts, and a shared key ring with the same application name for more than one instance.
-- [ ] `DOTNET_ROLL_FORWARD=Major dotnet test mvdmio.Hotwire.NET.Tests/mvdmio.Hotwire.NET.Tests.csproj` passes. This machine has only the .NET 10 runtime, and the tests target net8.0. `dotnet build Example.ASP.NetCore.RazorPages/Example.ASP.NetCore.RazorPages.csproj` succeeds.
+- [x] Restart: provider A is built with `AddTurboStreamsBroadcasting()`, with Data Protection keys persisted to a temporary folder. It signs a channel name and is then disposed. Provider B is built the same way over the same folder. B's `IChannelEncryption.Decrypt` returns the original name for A's token.
+- [x] Foreign key ring: a token signed through a provider over a different key folder makes `Decrypt` throw `ArgumentException`.
+- [x] Edited token: changing one character in the middle of a valid token to a different Base64 URL character makes `Decrypt` throw `ArgumentException`. Do not edit the last character, because its low bits can be unused.
+- [x] Garbage input: input with a period or a space, such as `abc.def` or `abc def`, makes `Decrypt` throw `ArgumentException`, not `FormatException`.
+- [x] Other purpose: a payload protected by the same provider under a different purpose makes `Decrypt` throw `ArgumentException`.
+- [x] Round trip: `record-page:2:Requirement:iso-27001-2022|5.2`, `eu-gdpr-2016|Art. 5(1)(a)`, and a name with non-ASCII letters come back unchanged.
+- [x] Path-safe token: for every round-trip token, `Uri.EscapeDataString(token)` equals `token`.
+- [x] Concurrency: 100 parallel sign-and-verify calls on one signer all round-trip.
+- [x] Middleware refusal: the websocket middleware runs with a real `DataProtectionChannelEncryption` and the path `/turbo/ws/<foreign-key-ring token>`. The response is 400, and the broadcaster's `AddConnection` is not called.
+- [x] Registration: after `AddTurboStreamsBroadcasting()`, resolving `IChannelEncryption` gives a `DataProtectionChannelEncryption`. An `IChannelEncryption` registered afterwards replaces it.
+- [x] `IChannelEncryption` keeps its two members. `RsaChannelEncryption` is still public and unchanged, and its existing tests pass.
+- [x] The package version is 1.8.0, and the README's Turbo Broadcasting section covers Data Protection signing, persisted keys for restarts, and a shared key ring with the same application name for more than one instance.
+- [x] `DOTNET_ROLL_FORWARD=Major dotnet test mvdmio.Hotwire.NET.Tests/mvdmio.Hotwire.NET.Tests.csproj` passes. This machine has only the .NET 10 runtime, and the tests target net8.0. `dotnet build Example.ASP.NetCore.RazorPages/Example.ASP.NetCore.RazorPages.csproj` succeeds.
+
+## Outcome
+
+Safety fact: a channel token signed by one service provider built with `AddTurboStreamsBroadcasting()` verifies in a second provider over the same persisted Data Protection key folder, while a foreign-key-ring token still gets HTTP 400 with no broadcaster connection; if false, open pages break after every restart or forged tokens open sockets (rung 3)
+Proof: `DOTNET_ROLL_FORWARD=Major dotnet test mvdmio.Hotwire.NET.Tests/mvdmio.Hotwire.NET.Tests.csproj --filter "FullyQualifiedName~AddTurboStreamsBroadcastingTests|FullyQualifiedName~InvokeAsync_ShouldRespondBadRequest_WhenTokenComesFromForeignKeyRing" --logger "console;verbosity=normal"` exit 0 — Passed AddTurboStreamsBroadcastingTests.Decrypt_ShouldAcceptTokenSignedBeforeRestart / Passed TurboStreamsWebsocketMiddlewareTests.InvokeAsync_ShouldRespondBadRequest_WhenTokenComesFromForeignKeyRing / Total tests: 4, Passed: 4
+Merge risk: hard — once 1.8.0 is published to NuGet the version and the token format other hosts render stay out there after a revert; affects every app on 1.8.0 that renders `<turbo-broadcast-channel>` (pages rendered by 1.8.0 are refused by an RSA-signing build, and the reverse)
+
+- Full suite: 64/64 pass under `DOTNET_ROLL_FORWARD=Major`. `Example.ASP.NetCore.RazorPages` builds; its regenerated `tailwind.config.js` was reverted.
+- Rung 4 not attempted: library change; the Proof rules cap a library at rung 3.
+- Proof transcript not saved to the Proof folder: the worktree sandbox refuses writes under `.git/proof/`, so the `Proof:` line names the command instead.
+- Footprint drift: none. Extra garbage-input case `test.c2lnbmF0dXJl` covers an old RSA-format token.

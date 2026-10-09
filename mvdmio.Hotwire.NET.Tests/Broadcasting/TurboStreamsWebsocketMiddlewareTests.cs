@@ -1,8 +1,10 @@
 using System;
+using System.IO;
 using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentAssertions;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Hosting;
@@ -40,6 +42,34 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
       nextWasCalled.Should().BeTrue();
       broadcaster.AddConnectionWasCalled.Should().BeFalse();
       context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+   }
+
+   [Fact]
+   public async Task InvokeAsync_ShouldRespondBadRequest_WhenTokenComesFromForeignKeyRing()
+   {
+      var keyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-keys-");
+      var foreignKeyDirectory = Directory.CreateTempSubdirectory("hotwire-dp-foreign-keys-");
+      try
+      {
+         var foreignToken = new DataProtectionChannelEncryption(DataProtectionProvider.Create(foreignKeyDirectory)).Encrypt("test");
+         var broadcaster = new TestTurboBroadcaster();
+         var channelEncryption = new DataProtectionChannelEncryption(DataProtectionProvider.Create(keyDirectory));
+         var applicationLifetime = new TestHostApplicationLifetime();
+         var sut = new TurboStreamsWebsocketMiddleware(applicationLifetime, broadcaster, channelEncryption, NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+         var context = new DefaultHttpContext();
+         context.Request.Path = "/turbo/ws/" + foreignToken;
+         context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
+
+         await sut.InvokeAsync(context, _ => Task.CompletedTask);
+
+         context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+         broadcaster.AddConnectionWasCalled.Should().BeFalse();
+      }
+      finally
+      {
+         keyDirectory.Delete(recursive: true);
+         foreignKeyDirectory.Delete(recursive: true);
+      }
    }
 
    private sealed class TestTurboBroadcaster : ITurboBroadcaster
