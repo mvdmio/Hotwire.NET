@@ -120,6 +120,34 @@ OR
 @Html.TurboBroadcastChannel("channel-name")
 ```
 
+### Testing and decorating the broadcaster
+``ITurboBroadcaster`` only contains the operations you broadcast with, so you can implement it in your own code.
+For example, a recorder that wraps the registered ``InMemoryTurboBroadcaster`` and forwards every broadcast to it:
+
+```csharp
+public sealed class RecordingBroadcaster(ITurboBroadcaster inner) : ITurboBroadcaster
+{
+   public List<(string Channel, ITurboAction Action)> Broadcasts { get; } = [];
+
+   public Task BroadcastAsync(string channel, ITurboAction turboAction, CancellationToken ct = default)
+   {
+      Broadcasts.Add((channel, turboAction));
+      return inner.BroadcastAsync(channel, turboAction, ct);
+   }
+}
+```
+
+Register it after calling ``AddTurboStreamsBroadcasting()``. The last ``ITurboBroadcaster`` registration wins:
+
+```csharp
+builder.Services.AddTurboStreamsBroadcasting();
+builder.Services.AddSingleton<ITurboBroadcaster>(sp => new RecordingBroadcaster(sp.GetRequiredService<InMemoryTurboBroadcaster>()));
+```
+
+Websocket connections are managed by ``InMemoryTurboBroadcaster`` regardless of the ``ITurboBroadcaster`` registration.
+Browsers keep connecting to ``/turbo/ws/...``, and a broadcast sent through the wrapped ``InMemoryTurboBroadcaster`` still reaches them.
+A recorder that forwards nothing works the same way and needs no websocket. Mocking libraries such as NSubstitute can substitute ``ITurboBroadcaster`` too.
+
 ### Channel signatures and Data Protection
 Channel names are signed with [ASP.NET Core Data Protection](https://learn.microsoft.com/aspnet/core/security/data-protection/introduction),
 using your application's Data Protection key ring. The signed name is placed in the websocket URL of each broadcast channel.

@@ -24,7 +24,8 @@ public static class AspWebExtensions
       services.AddDataProtection(); // Safe to call more than once; the host's own Data Protection configuration still applies.
 
       services.AddScoped<TurboStreamsWebsocketMiddleware>(); // Should be scoped so that each websocket connection has its own instance. The middleware blocks until the application is shut down or the client closes the connection.
-      services.AddSingleton<ITurboBroadcaster, InMemoryTurboBroadcaster>();
+      services.AddSingleton<InMemoryTurboBroadcaster>(); // The middleware stores connections here, whatever ITurboBroadcaster an app registers afterwards.
+      services.AddSingleton<ITurboBroadcaster>(sp => sp.GetRequiredService<InMemoryTurboBroadcaster>());
       services.AddSingleton<IChannelEncryption, DataProtectionChannelEncryption>(); // Plain AddSingleton so an app registration made afterwards wins.
 
       services.AddScoped<IViewRenderService, ViewRenderService>();

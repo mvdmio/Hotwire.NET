@@ -18,14 +18,14 @@ public sealed class TurboStreamsWebsocketMiddleware : IMiddleware
 {
    private readonly CancellationToken _shutdownCt;
    
-   private readonly ITurboBroadcaster _broadcaster;
+   private readonly InMemoryTurboBroadcaster _broadcaster;
    private readonly IChannelEncryption _channelEncryption;
    private readonly ILogger<TurboStreamsWebsocketMiddleware> _logger;
    
    /// <summary>
    ///   Constructor.
    /// </summary>
-   public TurboStreamsWebsocketMiddleware(IHostApplicationLifetime applicationLifetime, ITurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
+   public TurboStreamsWebsocketMiddleware(IHostApplicationLifetime applicationLifetime, InMemoryTurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
    {
       _broadcaster = broadcaster;
       _channelEncryption = channelEncryption;

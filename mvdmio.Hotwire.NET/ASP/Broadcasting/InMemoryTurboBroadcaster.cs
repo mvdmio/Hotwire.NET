@@ -29,7 +29,9 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
       _connections = new ConcurrentDictionary<ConnectionId, (string channel, WebSocket socket)>();
    }
 
-   /// <inheritdoc />
+   /// <summary>
+   ///   Adds a connection to broadcast to. Normally handled by the library internally.
+   /// </summary>
    public Task<ConnectionId> AddConnection(string channel, WebSocket webSocket, CancellationToken ct = default)
    {
       var connectionId = new ConnectionId();
@@ -40,7 +42,9 @@ public sealed class InMemoryTurboBroadcaster : ITurboBroadcaster
       throw new InvalidOperationException("Failed to add connection to the broadcaster. This should not happen.");
    }
 
-   /// <inheritdoc />
+   /// <summary>
+   ///   Removes a connection from the broadcaster. This is typically called when the WebSocket connection is closed.
+   /// </summary>
    public async Task RemoveConnection(ConnectionId connectionId, CancellationToken ct = default)
    {
       if (!_connections.TryRemove(connectionId, out var connection))

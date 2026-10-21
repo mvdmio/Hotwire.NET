@@ -1,7 +1,5 @@
-﻿using System.Net.WebSockets;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
-using mvdmio.Hotwire.NET.ASP.Broadcasting.ValueObjects;
 using mvdmio.Hotwire.NET.ASP.TurboActions;
 using mvdmio.Hotwire.NET.ASP.TurboActions.Interfaces;
 
@@ -12,16 +10,6 @@ namespace mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
 /// </summary>
 public interface ITurboBroadcaster
 {
-   /// <summary>
-   ///   Adds a connection to broadcast to. Normally handled by the library internally.
-   /// </summary>
-   internal Task<ConnectionId> AddConnection(string channel, WebSocket webSocket, CancellationToken ct = default);
-   
-   /// <summary>
-   ///   Removes a connection from the broadcaster. This is typically called when the WebSocket connection is closed.
-   /// </summary>
-   internal Task RemoveConnection(ConnectionId connectionId, CancellationToken ct = default);
-   
    /// <summary>
    ///   Broadcasts a Turbo Action to a channel.
    /// </summary>
