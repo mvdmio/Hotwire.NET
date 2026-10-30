@@ -120,6 +120,8 @@ OR
 @Html.TurboBroadcastChannel("channel-name")
 ```
 
+A channel follows the path base of your app (``app.UsePathBase("/base")``), so no extra setup is needed when the app is served under a path.
+
 ### Testing and decorating the broadcaster
 ``ITurboBroadcaster`` only contains the operations you broadcast with, so you can implement it in your own code.
 For example, a recorder that wraps the registered ``InMemoryTurboBroadcaster`` and forwards every broadcast to it:

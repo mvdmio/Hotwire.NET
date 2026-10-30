@@ -57,6 +57,27 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
          .Which.Message.Should().Be("Received websocket connection request with invalid signature");
    }
 
+   [Fact]
+   public async Task InvokeAsync_ShouldHandleWebsocketRequest_WhenRequestHasPathBase()
+   {
+      var broadcaster = new InMemoryTurboBroadcaster(NullLogger<InMemoryTurboBroadcaster>.Instance);
+      var sut = CreateMiddleware(broadcaster, new ChannelEncryptionStub(), NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+      var context = CreateWebsocketRequest("/turbo/ws/not-signed");
+      context.Request.PathBase = "/compliance";
+      var nextWasCalled = false;
+
+      await sut.InvokeAsync(
+         context,
+         _ => {
+            nextWasCalled = true;
+            return Task.CompletedTask;
+         }
+      );
+
+      nextWasCalled.Should().BeFalse();
+      context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
+   }
+
    private static TurboStreamsWebsocketMiddleware CreateMiddleware(InMemoryTurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
    {
       return new TurboStreamsWebsocketMiddleware(new HostApplicationLifetimeStub(), broadcaster, channelEncryption, logger);

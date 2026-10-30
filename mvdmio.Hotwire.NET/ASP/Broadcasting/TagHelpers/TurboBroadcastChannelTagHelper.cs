@@ -45,9 +45,8 @@ public class TurboBroadcastChannelTagHelper : TagHelper
       if(httpContext is null)
          throw new InvalidOperationException("Unable to get http context");
       
-      var host = httpContext.Request.Host;
-      var protocol = httpContext.Request.IsHttps ? "wss" : "ws";
-      
-      output.Content.SetHtmlContent($"<turbo-stream-source src=\"{protocol}://{host}/turbo/ws/{signedChannelName}\"></turbo-stream-source>");
+      var address = TurboBroadcastChannelAddress.Create(httpContext.Request, signedChannelName);
+
+      output.Content.SetHtmlContent($"<turbo-stream-source src=\"{address}\"></turbo-stream-source>");
    }
 }
