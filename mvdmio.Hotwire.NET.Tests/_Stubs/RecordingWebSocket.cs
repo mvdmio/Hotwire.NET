@@ -4,10 +4,18 @@ using System.Text;
 namespace mvdmio.Hotwire.NET.Tests._Stubs;
 
 /// <summary>
-///   A <see cref="WebSocket" /> that stays open and keeps the text messages sent to it.
+///   A <see cref="WebSocket" /> that stays open and keeps the text messages sent to it. Receiving waits until <see cref="RequestClientClose" />.
 /// </summary>
 public sealed class RecordingWebSocket : WebSocket
 {
+   private readonly TaskCompletionSource _receiveStarted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+   private readonly TaskCompletionSource _clientClose = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+   /// <summary>
+   ///   Completes when the first receive starts.
+   /// </summary>
+   public Task ReceiveStarted => _receiveStarted.Task;
+
    public List<string> SentMessages { get; } = [];
 
    public override WebSocketCloseStatus? CloseStatus => null;
@@ -36,9 +44,20 @@ public sealed class RecordingWebSocket : WebSocket
    {
    }
 
-   public override Task<WebSocketReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
+   /// <summary>
+   ///   Makes the pending receive return a close message, as when the client closes the connection.
+   /// </summary>
+   public void RequestClientClose()
    {
-      throw new NotSupportedException();
+      _clientClose.TrySetResult();
+   }
+
+   public override async Task<WebSocketReceiveResult> ReceiveAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
+   {
+      _receiveStarted.TrySetResult();
+      await _clientClose.Task.WaitAsync(cancellationToken);
+
+      return new WebSocketReceiveResult(0, WebSocketMessageType.Close, true);
    }
 
    public override Task SendAsync(ArraySegment<byte> buffer, WebSocketMessageType messageType, bool endOfMessage, CancellationToken cancellationToken)

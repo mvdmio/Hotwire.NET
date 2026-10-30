@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using mvdmio.Hotwire.NET.ASP.Broadcasting;
 using mvdmio.Hotwire.NET.ASP.Broadcasting.Interfaces;
+using mvdmio.Hotwire.NET.ASP.TurboActions;
 using mvdmio.Hotwire.NET.Tests._Helpers;
 using mvdmio.Hotwire.NET.Tests._Stubs;
 using Xunit;
@@ -22,7 +23,7 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
    public async Task InvokeAsync_ShouldPassThroughWebsocketRequestsOnOtherPaths()
    {
       var broadcaster = new InMemoryTurboBroadcaster(NullLogger<InMemoryTurboBroadcaster>.Instance);
-      var sut = CreateMiddleware(broadcaster, new TestChannelEncryption(), NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+      var sut = CreateMiddleware(broadcaster, new ChannelEncryptionStub(), NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
       var context = CreateWebsocketRequest("/other/ws");
       var nextWasCalled = false;
 
@@ -58,7 +59,7 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
    }
 
    [Fact]
-   public async Task InvokeAsync_ShouldHandleWebsocketRequest_WhenRequestHasPathBase()
+   public async Task InvokeAsync_ShouldRespondBadRequest_WhenRequestHasPathBaseAndUnsignedToken()
    {
       var broadcaster = new InMemoryTurboBroadcaster(NullLogger<InMemoryTurboBroadcaster>.Instance);
       var sut = CreateMiddleware(broadcaster, new ChannelEncryptionStub(), NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
@@ -78,31 +79,45 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
       context.Response.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
    }
 
+   [Fact]
+   public async Task InvokeAsync_ShouldAcceptWebsocketRequest_WhenRequestHasPathBaseAndSignedToken()
+   {
+      var broadcaster = new InMemoryTurboBroadcaster(NullLogger<InMemoryTurboBroadcaster>.Instance);
+      var sut = CreateMiddleware(broadcaster, new ChannelEncryptionStub(), NullLogger<TurboStreamsWebsocketMiddleware>.Instance);
+      var socket = new RecordingWebSocket();
+      var context = CreateWebsocketRequest("/turbo/ws/signed-channel", socket);
+      context.Request.PathBase = "/compliance";
+      var nextWasCalled = false;
+
+      var invocation = sut.InvokeAsync(
+         context,
+         _ => {
+            nextWasCalled = true;
+            return Task.CompletedTask;
+         }
+      );
+      await socket.ReceiveStarted.WaitAsync(TimeSpan.FromSeconds(5));
+      await broadcaster.BroadcastAsync("channel", new RefreshTurboAction("request-1"));
+      socket.RequestClientClose();
+      await invocation.WaitAsync(TimeSpan.FromSeconds(5));
+
+      nextWasCalled.Should().BeFalse();
+      context.Response.StatusCode.Should().Be(StatusCodes.Status200OK);
+      socket.SentMessages.Should().Equal("""<turbo-stream action="refresh" request-id="request-1"></turbo-stream>""");
+   }
+
    private static TurboStreamsWebsocketMiddleware CreateMiddleware(InMemoryTurboBroadcaster broadcaster, IChannelEncryption channelEncryption, ILogger<TurboStreamsWebsocketMiddleware> logger)
    {
       return new TurboStreamsWebsocketMiddleware(new HostApplicationLifetimeStub(), broadcaster, channelEncryption, logger);
    }
 
-   private static DefaultHttpContext CreateWebsocketRequest(string path)
+   private static DefaultHttpContext CreateWebsocketRequest(string path, WebSocket? webSocket = null)
    {
       var context = new DefaultHttpContext();
       context.Request.Path = path;
-      context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true));
+      context.Features.Set<IHttpWebSocketFeature>(new TestHttpWebSocketFeature(isWebSocketRequest: true, webSocket));
 
       return context;
-   }
-
-   private sealed class TestChannelEncryption : IChannelEncryption
-   {
-      public string Encrypt(string channelName)
-      {
-         return channelName;
-      }
-
-      public string Decrypt(string signedChannelName)
-      {
-         return signedChannelName;
-      }
    }
 
    private sealed class RecordingLogger<T> : ILogger<T>
@@ -125,13 +140,13 @@ public sealed class TurboStreamsWebsocketMiddlewareTests
       }
    }
 
-   private sealed class TestHttpWebSocketFeature(bool isWebSocketRequest) : IHttpWebSocketFeature
+   private sealed class TestHttpWebSocketFeature(bool isWebSocketRequest, WebSocket? webSocket) : IHttpWebSocketFeature
    {
       public bool IsWebSocketRequest => isWebSocketRequest;
 
       public Task<WebSocket> AcceptAsync(WebSocketAcceptContext context)
       {
-         throw new NotSupportedException();
+         return webSocket is null ? throw new NotSupportedException() : Task.FromResult(webSocket);
       }
    }
 }

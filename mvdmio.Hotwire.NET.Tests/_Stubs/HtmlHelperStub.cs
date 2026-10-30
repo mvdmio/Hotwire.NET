@@ -8,7 +8,7 @@ namespace mvdmio.Hotwire.NET.Tests._Stubs;
 /// </summary>
 public class HtmlHelperStub : DispatchProxy
 {
-   private ViewContext _viewContext = null!;
+   private ViewContext? _viewContext;
 
    public static IHtmlHelper Create(ViewContext viewContext)
    {
