@@ -8,6 +8,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-22.04 #ubuntu-latest doesnt work at the moment, see: https://github.com/NuGet/setup-nuget/issues/168
+    permissions:
+      contents: read
+      id-token: write # request the OIDC token that NuGet exchanges for a temporary API key
 
     steps:
       - uses: actions/checkout@v4
@@ -15,7 +18,6 @@ jobs:
       - name: Setup NuGet.exe for use with actions
         uses: nuget/setup-nuget@v2
         with:
-          nuget-api-key: ${{secrets.NUGET_API_KEY}}
           nuget-version: 'latest'
 
       - name: Setup .NET
@@ -29,5 +31,11 @@ jobs:
       - name: Build
         run: dotnet build mvdmio.Hotwire.NET --no-restore
 
+      - name: NuGet login
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: mvdmio
+
       - name: Push package
-        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -NonInteractive -SkipDuplicate -Verbosity normal
+        run: nuget push **\*.nupkg -Source 'https://api.nuget.org/v3/index.json' -ApiKey "${{ steps.login.outputs.NUGET_API_KEY }}" -NonInteractive -SkipDuplicate -Verbosity normal
