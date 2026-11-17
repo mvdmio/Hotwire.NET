@@ -30,9 +30,9 @@ Hotwire JS dependency manifest: `mvdmio.Hotwire.NET/package.json`
 
 ## Project Facts
 
-The library targets `net8.0` and `net9.0`.
-The tests target `net8.0`.
-The example apps target `net8.0`.
+The library targets `net10.0` and `net11.0`.
+The tests target `net11.0`.
+The example apps target `net11.0`.
 The library has `Nullable` enabled, `ImplicitUsings` disabled, and `LangVersion` set to `latest`.
 The library builds a NuGet package on every build via `GeneratePackageOnBuild=True`.
 There is no repo-level `.editorconfig`, `Directory.Build.props`, `Directory.Build.targets`, StyleCop config, or ESLint config.
@@ -110,7 +110,7 @@ dotnet test .\mvdmio.Hotwire.NET.Tests\mvdmio.Hotwire.NET.Tests.csproj --collect
 
 Important xUnit note: filtering a `[Theory]` method by method name runs every inline-data row for that method.
 
-Machine has only a newer .NET runtime (no net8.0 runtime): prefix `dotnet test` with `DOTNET_ROLL_FORWARD=Major` so the net8.0 test host starts.
+Machine has only a newer .NET runtime: prefix `dotnet test` with `DOTNET_ROLL_FORWARD=Major` if the test host fails to start.
 
 ## Lint / Format
 

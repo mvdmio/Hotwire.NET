@@ -8,6 +8,11 @@ and [Hotwire Stimulus](https://stimulus.hotwire.dev) in your .NET project withou
 After installation the NuGet package will automatically add the Turbo and Stimulus JS files to your project in
 `wwwroot/js/lib`. See 'Configuration' below to change the default directory.
 
+### Supported frameworks
+
+Version 2.x targets `net10.0` and `net11.0` and requires the .NET 10 SDK or newer.
+Projects on `net8.0` or `net9.0` should stay on version 1.10.0.
+
 ### Install the NuGet package
 
 ```
