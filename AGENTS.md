@@ -7,14 +7,7 @@ Base decisions on the current repo contents, not generic .NET defaults.
 
 ## General instructions
 
-- Ask questions if you need clarification.
-- Search early; quote exact errors; prefer newer sources.
-- Style: telegraph. Drop filler/grammar. Min tokens (global AGENTS + replies).
-- Keep files shorter than ~500 LOC; split/refactor as needed. Does not apply to test files.
-- Always add tests when adding functionality.
-- Always create or modify tests when fixing a bug.
 - Always build the solution and run the tests after making changes. Fix all build errors and test failures before finishing your work.
-- If the build fails because some process is running and locking the file, kill the process.
 - Always update the README.md file so that it reflects the latest state of the project.
 - Always bump the version number in the `mvdmio.Hotwire.NET` .csproj file when making changes that affect the projects. Follow semantic versioning principles (MAJOR.MINOR.PATCH).
 
